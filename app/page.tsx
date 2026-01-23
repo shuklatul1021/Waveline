@@ -13,6 +13,7 @@ import FAQSection from "../components/faq-section";
 import PricingSection from "../components/pricing-section";
 import CTASection from "../components/cta-section";
 import FooterSection from "../components/footer-section";
+import Link from "next/link";
 
 // Reusable Badge Component
 function Badge({ icon, text }: { icon: React.ReactNode; text: string }) {
@@ -111,35 +112,38 @@ export default function LandingPage() {
             <div className="w-full h-12 sm:h-14 md:h-16 lg:h-[84px] absolute left-0 top-0 flex justify-center items-center z-20 px-6 sm:px-8 md:px-12 lg:px-0">
               <div className="w-full h-0 absolute left-0 top-6 sm:top-7 md:top-8 lg:top-[42px] border-t border-[rgba(55,50,47,0.12)] shadow-[0px_1px_0px_white]"></div>
 
-              <div className="w-full max-w-[calc(100%-32px)] sm:max-w-[calc(100%-48px)] md:max-w-[calc(100%-64px)] lg:max-w-[700px] lg:w-[700px] h-10 sm:h-11 md:h-12 py-1.5 sm:py-2 px-3 sm:px-4 md:px-4 pr-2 sm:pr-3 bg-[#F7F5F3] backdrop-blur-sm shadow-[0px_0px_0px_2px_white] overflow-hidden rounded-[50px] flex justify-between items-center relative z-30">
-                <div className="flex justify-center items-center">
+              <div className="w-full max-w-[calc(100%-32px)] sm:max-w-[calc(100%-48px)] md:max-w-[calc(100%-64px)] lg:max-w-[1060px] lg:w-[1060px] h-12 sm:h-14 md:h-16 py-2 px-6 bg-[#F7F5F3]/80 backdrop-blur-md shadow-[0px_0px_0px_1px_rgba(55,50,47,0.08),0px_2px_4px_rgba(0,0,0,0.02)] overflow-hidden rounded-full flex justify-between items-center relative z-30 transition-all duration-300">
+                <div className="flex justify-center items-center gap-8">
                   <div className="flex justify-start items-center">
-                    <div className="flex flex-col justify-center text-[#2F3037] text-sm sm:text-base md:text-lg lg:text-xl font-medium leading-5 font-sans">
-                      PodcastHub
+                    <div className="flex flex-col justify-center text-[#2F3037] text-lg font-semibold leading-5 font-sans tracking-tight">
+                      Waveline
                     </div>
                   </div>
-                  <div className="pl-3 sm:pl-4 md:pl-5 lg:pl-5 flex justify-start items-start hidden sm:flex flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-4">
-                    <div className="flex justify-start items-center">
-                      <div className="flex flex-col justify-center text-[rgba(49,45,43,0.80)] text-xs md:text-[13px] font-medium leading-[14px] font-sans">
+                  <div className="hidden sm:flex flex-row gap-6 items-center">
+                    <div className="flex justify-start items-center cursor-pointer hover:opacity-70 transition-opacity">
+                      <div className="text-[rgba(49,45,43,0.9)] text-sm font-medium leading-[14px] font-sans">
                         Products
                       </div>
                     </div>
-                    <div className="flex justify-start items-center">
-                      <div className="flex flex-col justify-center text-[rgba(49,45,43,0.80)] text-xs md:text-[13px] font-medium leading-[14px] font-sans">
+                    <div className="flex justify-start items-center cursor-pointer hover:opacity-70 transition-opacity">
+                      <div className="text-[rgba(49,45,43,0.9)] text-sm font-medium leading-[14px] font-sans">
                         Pricing
                       </div>
                     </div>
-                    <div className="flex justify-start items-center">
-                      <div className="flex flex-col justify-center text-[rgba(49,45,43,0.80)] text-xs md:text-[13px] font-medium leading-[14px] font-sans">
+                    <div className="flex justify-start items-center cursor-pointer hover:opacity-70 transition-opacity">
+                      <div className="text-[rgba(49,45,43,0.9)] text-sm font-medium leading-[14px] font-sans">
                         Docs
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="h-6 sm:h-7 md:h-8 flex justify-start items-start gap-2 sm:gap-3">
-                  <div className="px-2 sm:px-3 md:px-[14px] py-1 sm:py-[6px] bg-white shadow-[0px_1px_2px_rgba(55,50,47,0.12)] overflow-hidden rounded-full flex justify-center items-center">
-                    <div className="flex flex-col justify-center text-[#37322F] text-xs md:text-[13px] font-medium leading-5 font-sans">
-                      Log in
+                <div className="flex justify-start items-center gap-3">
+                  <div className="px-4 py-2 text-[#37322F] text-sm font-medium hover:opacity-70 transition-opacity cursor-pointer">
+                    <Link href="/auth">Log in</Link>
+                  </div>
+                  <div className="px-5 py-2.5 bg-[#37322F] text-white shadow-sm overflow-hidden rounded-full flex justify-center items-center cursor-pointer hover:bg-[#37322F]/90 transition-colors">
+                    <div className="text-sm font-medium leading-tight font-sans">
+                      <Link href="/auth">Get Started</Link>
                     </div>
                   </div>
                 </div>
@@ -196,11 +200,10 @@ export default function LandingPage() {
                       <div className="relative w-full h-full overflow-hidden">
                         {/* Product Image 1 - Plan your schedules */}
                         <div
-                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
-                            activeCard === 0
-                              ? "opacity-100 scale-100 blur-0"
-                              : "opacity-0 scale-95 blur-sm"
-                          }`}
+                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${activeCard === 0
+                            ? "opacity-100 scale-100 blur-0"
+                            : "opacity-0 scale-95 blur-sm"
+                            }`}
                         >
                           <img
                             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dsadsadsa.jpg-xTHS4hGwCWp2H5bTj8np6DXZUyrxX7.jpeg"
@@ -211,11 +214,10 @@ export default function LandingPage() {
 
                         {/* Product Image 2 - Data to insights */}
                         <div
-                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
-                            activeCard === 1
-                              ? "opacity-100 scale-100 blur-0"
-                              : "opacity-0 scale-95 blur-sm"
-                          }`}
+                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${activeCard === 1
+                            ? "opacity-100 scale-100 blur-0"
+                            : "opacity-0 scale-95 blur-sm"
+                            }`}
                         >
                           <img
                             src="/analytics-dashboard-with-charts-graphs-and-data-vi.jpg"
@@ -226,11 +228,10 @@ export default function LandingPage() {
 
                         {/* Product Image 3 - Data visualization */}
                         <div
-                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
-                            activeCard === 2
-                              ? "opacity-100 scale-100 blur-0"
-                              : "opacity-0 scale-95 blur-sm"
-                          }`}
+                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${activeCard === 2
+                            ? "opacity-100 scale-100 blur-0"
+                            : "opacity-0 scale-95 blur-sm"
+                            }`}
                         >
                           <img
                             src="/data-visualization-dashboard-with-interactive-char.jpg"
@@ -483,6 +484,65 @@ export default function LandingPage() {
                 </div>
               </div>
 
+
+
+              {/* How It Works Section */}
+              <div className="w-full border-b border-[rgba(55,50,47,0.12)] flex flex-col justify-center items-center">
+                <div className="self-stretch px-4 sm:px-6 md:px-8 lg:px-0 lg:max-w-[1060px] lg:w-[1060px] py-16 sm:py-24 flex flex-col justify-center items-center gap-12 sm:gap-16">
+                  <div className="flex flex-col justify-center items-center gap-6 text-center">
+                    <Badge
+                      icon={
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M7 1L7 13M1 7L13 7" stroke="#37322F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      }
+                      text="Workflow"
+                    />
+                    <h2 className="text-[#37322F] text-3xl sm:text-4xl md:text-5xl font-serif font-medium leading-[1.15] max-w-[800px]">
+                      From Recording to Publishing in 3 Simple Steps
+                    </h2>
+                  </div>
+
+                  <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 lg:gap-16 relative">
+                    {/* Connecting Line (Desktop) */}
+                    <div className="hidden md:block absolute top-[24px] left-[16%] right-[16%] h-[1px] bg-[rgba(55,50,47,0.1)] border-t border-dashed border-[#37322F]/30 -z-10"></div>
+
+                    {/* Step 1 */}
+                    <div className="flex flex-col justify-start items-center text-center gap-4 bg-[#F7F5F3] relative">
+                      <div className="w-12 h-12 bg-white shadow-[0px_2px_4px_rgba(55,50,47,0.06),0px_0px_0px_1px_rgba(55,50,47,0.04)] rounded-full flex justify-center items-center text-lg font-serif font-medium text-[#37322F] z-10 mb-2">
+                        1
+                      </div>
+                      <h3 className="text-[#37322F] text-xl font-semibold font-sans">Record Anywhere</h3>
+                      <p className="text-[#605A57] text-base leading-7 font-sans">
+                        Send a link to your guests. Record high-quality local audio directly from the browser, no downloads required.
+                      </p>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="flex flex-col justify-start items-center text-center gap-4 bg-[#F7F5F3] relative">
+                      <div className="w-12 h-12 bg-white shadow-[0px_2px_4px_rgba(55,50,47,0.06),0px_0px_0px_1px_rgba(55,50,47,0.04)] rounded-full flex justify-center items-center text-lg font-serif font-medium text-[#37322F] z-10 mb-2">
+                        2
+                      </div>
+                      <h3 className="text-[#37322F] text-xl font-semibold font-sans">AI Magic Edit</h3>
+                      <p className="text-[#605A57] text-base leading-7 font-sans">
+                        Our AI automatically removes filler words, balances levels, and reduces background noise in seconds.
+                      </p>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex flex-col justify-start items-center text-center gap-4 bg-[#F7F5F3] relative">
+                      <div className="w-12 h-12 bg-white shadow-[0px_2px_4px_rgba(55,50,47,0.06),0px_0px_0px_1px_rgba(55,50,47,0.04)] rounded-full flex justify-center items-center text-lg font-serif font-medium text-[#37322F] z-10 mb-2">
+                        3
+                      </div>
+                      <h3 className="text-[#37322F] text-xl font-semibold font-sans">Publish Instantly</h3>
+                      <p className="text-[#605A57] text-base leading-7 font-sans">
+                        Distribute your episode to Spotify, Apple Podcasts, and YouTube with a single click.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Bento Grid Section */}
               <div className="w-full border-b border-[rgba(55,50,47,0.12)] flex flex-col justify-center items-center">
                 {/* Header Section */}
@@ -705,7 +765,7 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 
@@ -725,11 +785,10 @@ function FeatureCard({
 }) {
   return (
     <div
-      className={`w-full md:flex-1 self-stretch px-6 py-5 overflow-hidden flex flex-col justify-start items-start gap-2 cursor-pointer relative border-b md:border-b-0 last:border-b-0 ${
-        isActive
-          ? "bg-white shadow-[0px_0px_0px_0.75px_#E0DEDB_inset]"
-          : "border-l-0 border-r-0 md:border border-[#E0DEDB]/80"
-      }`}
+      className={`w-full md:flex-1 self-stretch px-6 py-5 overflow-hidden flex flex-col justify-start items-start gap-2 cursor-pointer relative border-b md:border-b-0 last:border-b-0 ${isActive
+        ? "bg-white shadow-[0px_0px_0px_0.75px_#E0DEDB_inset]"
+        : "border-l-0 border-r-0 md:border border-[#E0DEDB]/80"
+        }`}
       onClick={onClick}
     >
       {isActive && (

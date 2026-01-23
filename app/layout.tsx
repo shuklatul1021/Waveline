@@ -19,7 +19,7 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata: Metadata = {
-  title: "Nova - Effortless Custom Contract Billing",
+  title: "Waveline - Effortless Custom Contract Billing",
   description:
     "Streamline your billing process with seamless automation for every custom contract, tailored by Brillance.",
 }
