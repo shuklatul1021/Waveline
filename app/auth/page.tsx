@@ -22,7 +22,7 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-[#F7F5F3] flex flex-col md:flex-row">
       {/* Left Side - Brand & Testimonial */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#37322F] overflow-hidden flex-col justify-between p-12 xl:p-16 text-white text-balance">
+      <div className="hidden lg:flex lg:w-1/2 h-screen sticky top-0 relative bg-[#37322F] overflow-hidden flex-col justify-between p-12 xl:p-16 text-white text-balance">
         {/* Background Enhancements */}
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
         <div className="absolute top-0 left-0 w-full h-full opacity-10"
