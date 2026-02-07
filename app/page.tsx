@@ -207,7 +207,7 @@ export default function LandingPage() {
                           }`}
                         >
                           <img
-                            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dsadsadsa.jpg-xTHS4hGwCWp2H5bTj8np6DXZUyrxX7.jpeg"
+                            src=""
                             alt="Schedules Dashboard - Customer Subscription Management"
                             className="w-full h-full object-cover"
                           />
@@ -222,7 +222,7 @@ export default function LandingPage() {
                           }`}
                         >
                           <img
-                            src="/analytics-dashboard-with-charts-graphs-and-data-vi.jpg"
+                            src=""
                             alt="Analytics Dashboard"
                             className="w-full h-full object-cover"
                           />
@@ -237,7 +237,7 @@ export default function LandingPage() {
                           }`}
                         >
                           <img
-                            src="/data-visualization-dashboard-with-interactive-char.jpg"
+                            src=""
                             alt="Data Visualization Dashboard"
                             className="w-full h-full object-contain" // Changed from object-cover to object-contain to preserve landscape aspect ratio
                           />

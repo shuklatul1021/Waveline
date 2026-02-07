@@ -20,9 +20,14 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Waveline - Effortless Custom Contract Billing",
+  title: "Waveline - Record, Edit & Share Your Podcast",
   description:
-    "Streamline your billing process with seamless automation for every custom contract, tailored by Brillance.",
+    "The all-in-one platform where creators record professional podcasts, collaborate with guests, and publish to all major platforms.",
+  icons: {
+    icon: [],
+    shortcut: [],
+    apple: [],
+  },
 };
 
 export default function RootLayout({
