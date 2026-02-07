@@ -72,25 +72,25 @@ export default function LandingPage() {
       case 0:
         return (
           <div className="text-[#828387] text-sm">
-            Podcast Recording Studio Dashboard
+            Real-Time Session Dashboard
           </div>
         );
       case 1:
         return (
           <div className="text-[#828387] text-sm">
-            Episode Analytics - Listens & Engagement
+            Session Analytics - Views & Engagement
           </div>
         );
       case 2:
         return (
           <div className="text-[#828387] text-sm">
-            Guest Management - Interviews & Scheduling
+            Participant Management - Sessions & Scheduling
           </div>
         );
       default:
         return (
           <div className="text-[#828387] text-sm">
-            Podcast Recording Studio Dashboard
+            Real-Time Session Dashboard
           </div>
         );
     }
@@ -155,16 +155,16 @@ export default function LandingPage() {
               <div className="w-full max-w-[937px] lg:w-[937px] flex flex-col justify-center items-center gap-3 sm:gap-4 md:gap-5 lg:gap-6">
                 <div className="self-stretch rounded-[3px] flex flex-col justify-center items-center gap-4 sm:gap-5 md:gap-6 lg:gap-8">
                   <div className="w-full max-w-[748.71px] lg:w-[748.71px] text-center flex justify-center flex-col text-[#37322F] text-[24px] xs:text-[28px] sm:text-[36px] md:text-[52px] lg:text-[80px] font-normal leading-[1.1] sm:leading-[1.15] md:leading-[1.2] lg:leading-24 font-serif px-2 sm:px-4 md:px-0">
-                    Record & Publish Your
+                    Connect & Create
                     <br />
-                    Podcast in Minutes
+                    in Real-Time
                   </div>
                   <div className="w-full max-w-[506.08px] lg:w-[506.08px] text-center flex justify-center flex-col text-[rgba(55,50,47,0.80)] sm:text-lg md:text-xl leading-[1.4] sm:leading-[1.45] md:leading-[1.5] lg:leading-7 font-sans px-2 sm:px-4 md:px-0 lg:text-lg font-medium text-sm">
-                    Studio-quality recording with remote guests. AI editing
-                    removes filler words.
+                    Studio-quality sessions for podcasts, meetings, interviews,
+                    presentations,
                     <br className="hidden sm:block" />
-                    One-click distribution to Spotify, Apple Podcasts, and 20+
-                    platforms.
+                    casual hangouts, gaming, and more. AI-powered recording with
+                    remote participants.
                   </div>
                 </div>
               </div>
@@ -200,10 +200,11 @@ export default function LandingPage() {
                       <div className="relative w-full h-full overflow-hidden">
                         {/* Product Image 1 - Plan your schedules */}
                         <div
-                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${activeCard === 0
-                            ? "opacity-100 scale-100 blur-0"
-                            : "opacity-0 scale-95 blur-sm"
-                            }`}
+                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+                            activeCard === 0
+                              ? "opacity-100 scale-100 blur-0"
+                              : "opacity-0 scale-95 blur-sm"
+                          }`}
                         >
                           <img
                             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dsadsadsa.jpg-xTHS4hGwCWp2H5bTj8np6DXZUyrxX7.jpeg"
@@ -214,10 +215,11 @@ export default function LandingPage() {
 
                         {/* Product Image 2 - Data to insights */}
                         <div
-                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${activeCard === 1
-                            ? "opacity-100 scale-100 blur-0"
-                            : "opacity-0 scale-95 blur-sm"
-                            }`}
+                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+                            activeCard === 1
+                              ? "opacity-100 scale-100 blur-0"
+                              : "opacity-0 scale-95 blur-sm"
+                          }`}
                         >
                           <img
                             src="/analytics-dashboard-with-charts-graphs-and-data-vi.jpg"
@@ -228,10 +230,11 @@ export default function LandingPage() {
 
                         {/* Product Image 3 - Data visualization */}
                         <div
-                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${activeCard === 2
-                            ? "opacity-100 scale-100 blur-0"
-                            : "opacity-0 scale-95 blur-sm"
-                            }`}
+                          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+                            activeCard === 2
+                              ? "opacity-100 scale-100 blur-0"
+                              : "opacity-0 scale-95 blur-sm"
+                          }`}
                         >
                           <img
                             src="/data-visualization-dashboard-with-interactive-char.jpg"
@@ -261,22 +264,22 @@ export default function LandingPage() {
                 <div className="flex-1 px-0 sm:px-2 md:px-0 flex flex-col md:flex-row justify-center items-stretch gap-0">
                   {/* Feature Cards */}
                   <FeatureCard
-                    title="Studio-Quality Recording"
-                    description="Record crystal-clear audio with up to 8 participants. Separate tracks for each person, noise cancellation, and local recording for reliability."
+                    title="Multi-Purpose Sessions"
+                    description="Perfect for podcasts, team meetings, interviews, presentations, casual hangouts, or gaming sessions. One platform for all your real-time needs."
                     isActive={activeCard === 0}
                     progress={activeCard === 0 ? progress : 0}
                     onClick={() => handleCardClick(0)}
                   />
                   <FeatureCard
-                    title="AI-Powered Editing"
-                    description="Automatically remove filler words, silence, and background noise. Adjust levels, add intros/outros, and export in minutes—not hours."
+                    title="Crystal-Clear Quality"
+                    description="Studio-quality audio & video with up to 10 participants. Noise cancellation, separate tracks, and local recording ensure reliability."
                     isActive={activeCard === 1}
                     progress={activeCard === 1 ? progress : 0}
                     onClick={() => handleCardClick(1)}
                   />
                   <FeatureCard
-                    title="One-Click Publishing"
-                    description="Distribute to Spotify, Apple Podcasts, YouTube, and 20+ platforms instantly. RSS feed generation and analytics included."
+                    title="AI-Powered & Shareable"
+                    description="AI editing removes filler words and enhances quality. Record, save, and share your sessions instantly. Distribute podcasts to 20+ platforms."
                     isActive={activeCard === 2}
                     progress={activeCard === 2 ? progress : 0}
                     onClick={() => handleCardClick(2)}
@@ -402,13 +405,13 @@ export default function LandingPage() {
                       text="Social Proof"
                     />
                     <div className="w-full max-w-[472.55px] text-center flex justify-center flex-col text-[#49423D] text-xl sm:text-2xl md:text-3xl lg:text-5xl font-semibold leading-tight md:leading-[60px] font-sans tracking-tight">
-                      Trusted by Creators Worldwide
+                      Trusted by Teams & Creators
                     </div>
                     <div className="self-stretch text-center text-[#605A57] text-sm sm:text-base font-normal leading-6 sm:leading-7 font-sans">
-                      Podcasters save 10+ hours per episode on editing and
-                      publishing
+                      Teams and creators save 10+ hours per session on recording
+                      and editing
                       <br className="hidden sm:block" />
-                      with professional-quality results that engage listeners.
+                      with professional-quality results for any use case.
                     </div>
                   </div>
                 </div>
@@ -484,22 +487,32 @@ export default function LandingPage() {
                 </div>
               </div>
 
-
-
               {/* How It Works Section */}
               <div className="w-full border-b border-[rgba(55,50,47,0.12)] flex flex-col justify-center items-center">
                 <div className="self-stretch px-4 sm:px-6 md:px-8 lg:px-0 lg:max-w-[1060px] lg:w-[1060px] py-16 sm:py-24 flex flex-col justify-center items-center gap-12 sm:gap-16">
                   <div className="flex flex-col justify-center items-center gap-6 text-center">
                     <Badge
                       icon={
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M7 1L7 13M1 7L13 7" stroke="#37322F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 14 14"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M7 1L7 13M1 7L13 7"
+                            stroke="#37322F"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                       }
                       text="Workflow"
                     />
                     <h2 className="text-[#37322F] text-3xl sm:text-4xl md:text-5xl font-serif font-medium leading-[1.15] max-w-[800px]">
-                      From Recording to Publishing in 3 Simple Steps
+                      Start Your Session in 3 Simple Steps
                     </h2>
                   </div>
 
@@ -512,9 +525,13 @@ export default function LandingPage() {
                       <div className="w-12 h-12 bg-white shadow-[0px_2px_4px_rgba(55,50,47,0.06),0px_0px_0px_1px_rgba(55,50,47,0.04)] rounded-full flex justify-center items-center text-lg font-serif font-medium text-[#37322F] z-10 mb-2">
                         1
                       </div>
-                      <h3 className="text-[#37322F] text-xl font-semibold font-sans">Record Anywhere</h3>
+                      <h3 className="text-[#37322F] text-xl font-semibold font-sans">
+                        Choose Your Session
+                      </h3>
                       <p className="text-[#605A57] text-base leading-7 font-sans">
-                        Send a link to your guests. Record high-quality local audio directly from the browser, no downloads required.
+                        Select your session type: podcast, meeting, interview,
+                        presentation, casual hangout, or gaming. Invite
+                        participants with a simple link.
                       </p>
                     </div>
 
@@ -523,9 +540,13 @@ export default function LandingPage() {
                       <div className="w-12 h-12 bg-white shadow-[0px_2px_4px_rgba(55,50,47,0.06),0px_0px_0px_1px_rgba(55,50,47,0.04)] rounded-full flex justify-center items-center text-lg font-serif font-medium text-[#37322F] z-10 mb-2">
                         2
                       </div>
-                      <h3 className="text-[#37322F] text-xl font-semibold font-sans">AI Magic Edit</h3>
+                      <h3 className="text-[#37322F] text-xl font-semibold font-sans">
+                        Connect in Real-Time
+                      </h3>
                       <p className="text-[#605A57] text-base leading-7 font-sans">
-                        Our AI automatically removes filler words, balances levels, and reduces background noise in seconds.
+                        High-quality audio & video directly in browser. No
+                        downloads required. Record locally for crystal-clear
+                        quality.
                       </p>
                     </div>
 
@@ -534,9 +555,13 @@ export default function LandingPage() {
                       <div className="w-12 h-12 bg-white shadow-[0px_2px_4px_rgba(55,50,47,0.06),0px_0px_0px_1px_rgba(55,50,47,0.04)] rounded-full flex justify-center items-center text-lg font-serif font-medium text-[#37322F] z-10 mb-2">
                         3
                       </div>
-                      <h3 className="text-[#37322F] text-xl font-semibold font-sans">Publish Instantly</h3>
+                      <h3 className="text-[#37322F] text-xl font-semibold font-sans">
+                        Save & Share
+                      </h3>
                       <p className="text-[#605A57] text-base leading-7 font-sans">
-                        Distribute your episode to Spotify, Apple Podcasts, and YouTube with a single click.
+                        AI-enhanced recordings ready to share. For podcasts,
+                        publish to Spotify, Apple Podcasts, and 20+ platforms
+                        instantly.
                       </p>
                     </div>
                   </div>
@@ -598,11 +623,11 @@ export default function LandingPage() {
                       text="Bento grid"
                     />
                     <div className="w-full max-w-[598.06px] lg:w-[598.06px] text-center flex justify-center flex-col text-[#49423D] text-xl sm:text-2xl md:text-3xl lg:text-5xl font-semibold leading-tight md:leading-[60px] font-sans tracking-tight">
-                      Everything You Need to Create Amazing Podcasts
+                      Everything You Need for Real-Time Sessions
                     </div>
                     <div className="self-stretch text-center text-[#605A57] text-sm sm:text-base font-normal leading-6 sm:leading-7 font-sans">
-                      From recording with remote guests to publishing on all
-                      platforms.
+                      From team meetings to podcast recording, interviews to
+                      gaming sessions.
                       <br />
                       Professional results without expensive equipment or
                       technical skills.
@@ -629,12 +654,12 @@ export default function LandingPage() {
                     <div className="border-b border-r-0 md:border-r border-[rgba(55,50,47,0.12)] p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col justify-start items-start gap-4 sm:gap-6">
                       <div className="flex flex-col gap-2">
                         <h3 className="text-[#37322F] text-lg sm:text-xl font-semibold leading-tight font-sans">
-                          Remote Guest Recording
+                          Instant Remote Sessions
                         </h3>
                         <p className="text-[#605A57] text-sm md:text-base font-normal leading-relaxed font-sans">
-                          Send a link to guests—no downloads needed. Record via
-                          browser with crystal-clear audio, even with unstable
-                          internet.
+                          Send a link to participants—no downloads needed.
+                          Connect via browser with crystal-clear audio & video,
+                          even with unstable internet.
                         </p>
                       </div>
                       <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex items-center justify-center overflow-hidden">
@@ -651,12 +676,12 @@ export default function LandingPage() {
                     <div className="border-b border-[rgba(55,50,47,0.12)] p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col justify-start items-start gap-4 sm:gap-6">
                       <div className="flex flex-col gap-2">
                         <h3 className="text-[#37322F] font-semibold leading-tight font-sans text-lg sm:text-xl">
-                          AI-Powered Editing
+                          AI Enhancement & Recording
                         </h3>
                         <p className="text-[#605A57] text-sm md:text-base font-normal leading-relaxed font-sans">
-                          Automatically remove filler words (um, ah, like),
-                          silence, and background noise. Professional results in
-                          minutes.
+                          Record sessions with automatic filler word removal,
+                          noise cancellation, and level balancing. Professional
+                          results in minutes.
                         </p>
                       </div>
                       <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex overflow-hidden text-right items-center justify-center">
@@ -765,7 +790,7 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 }
 
@@ -785,10 +810,11 @@ function FeatureCard({
 }) {
   return (
     <div
-      className={`w-full md:flex-1 self-stretch px-6 py-5 overflow-hidden flex flex-col justify-start items-start gap-2 cursor-pointer relative border-b md:border-b-0 last:border-b-0 ${isActive
-        ? "bg-white shadow-[0px_0px_0px_0.75px_#E0DEDB_inset]"
-        : "border-l-0 border-r-0 md:border border-[#E0DEDB]/80"
-        }`}
+      className={`w-full md:flex-1 self-stretch px-6 py-5 overflow-hidden flex flex-col justify-start items-start gap-2 cursor-pointer relative border-b md:border-b-0 last:border-b-0 ${
+        isActive
+          ? "bg-white shadow-[0px_0px_0px_0.75px_#E0DEDB_inset]"
+          : "border-l-0 border-r-0 md:border border-[#E0DEDB]/80"
+      }`}
       onClick={onClick}
     >
       {isActive && (

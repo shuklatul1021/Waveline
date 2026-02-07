@@ -9,34 +9,34 @@ interface FAQItem {
 
 const faqData: FAQItem[] = [
   {
-    question: "What makes this podcast platform different?",
+    question: "What types of sessions can I host?",
     answer:
-      "Our platform combines studio-quality recording, AI-powered editing, and multi-platform distribution in one place. Unlike other tools, guests don't need to download anything - they join via browser. Plus, we record locally for pristine audio quality even with unstable internet.",
+      "Our platform supports a wide range of real-time sessions: podcasts, team meetings, interviews, presentations, casual hangouts, and gaming sessions. Each session type has optimized settings for the best experience.",
   },
   {
-    question: "How many guests can I have on a podcast?",
+    question: "How many participants can join a session?",
     answer:
-      "You can record with up to 8 participants simultaneously on our Professional and Enterprise plans. The Starter plan supports up to 2 participants. All plans include separate audio tracks for each person, making editing much easier.",
+      "You can have up to 10 participants simultaneously on our Professional and Enterprise plans. The Starter plan supports up to 2 participants. All plans include separate audio tracks for each person when recording.",
   },
   {
-    question: "Do my guests need to create an account?",
+    question: "Do participants need to create an account?",
     answer:
-      "No! Simply send them a link and they can join directly from their browser. No downloads, no account creation, no friction. This makes it incredibly easy to interview guests from anywhere in the world.",
+      "No! Simply send them a link and they can join directly from their browser. No downloads, no account creation, no friction. This makes it incredibly easy to connect with anyone from anywhere in the world.",
   },
   {
-    question: "What editing features are included?",
+    question: "Can I record my sessions?",
     answer:
-      "Our AI editing suite automatically removes filler words (um, ah, like), silence, and background noise. You can also manually edit with our waveform editor, add intro/outro music, insert sponsor segments, and adjust levels. All plans include unlimited editing.",
+      "Yes! All session types support recording. Our AI editing suite automatically removes filler words, silence, and background noise. For podcasts, you can add intro/outro music and publish directly to platforms.",
   },
   {
-    question: "Which podcast platforms can I publish to?",
+    question: "Which platforms can I publish podcasts to?",
     answer:
       "We automatically distribute to Spotify, Apple Podcasts, Google Podcasts, YouTube, Amazon Music, and 20+ other platforms. You can also export files directly if you prefer to upload manually. RSS feed generation is included.",
   },
   {
-    question: "How do I get started recording my first episode?",
+    question: "How do I get started with my first session?",
     answer:
-      "Sign up for free, create your podcast profile with artwork and description, then click 'Start Recording'. You can record solo or send invite links to guests. Most users publish their first episode within an hour of signing up!",
+      "Sign up for free, choose your session type (podcast, meeting, interview, presentation, casual, or gaming), then click 'Start Session'. You can start solo or send invite links to participants. Most users start their first session within minutes of signing up!",
   },
 ];
 
@@ -79,9 +79,9 @@ export default function FAQSection() {
             Frequently Asked Questions
           </div>
           <div className="w-full text-[#605A57] text-base font-normal leading-7 font-sans">
-            Everything you need to know about recording,
+            Everything you need to know about hosting sessions,
             <br className="hidden md:block" />
-            editing, and publishing your podcast.
+            recording, and connecting with your team.
           </div>
         </div>
 

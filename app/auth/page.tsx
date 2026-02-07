@@ -105,28 +105,18 @@ export default function AuthPage() {
 
         {/* Bottom Testimonial */}
         <div className="relative z-10 bg-white/5 backdrop-blur-sm border border-white/10 p-6 rounded-2xl">
-          <div className="flex gap-1 mb-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <svg
-                key={i}
-                className="w-5 h-5 text-amber-400 fill-current"
-                viewBox="0 0 20 20"
-              >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            ))}
-          </div>
           <blockquote className="text-lg font-medium leading-relaxed mb-4">
-            "Waveline cut my production time by 70%. The AI editing is like
-            magic, and the audio quality is indistinguishable from a physical
-            studio."
+            "I built Waveline because I was frustrated with how hard it was to
+            connect with people remotely—whether for podcasts, meetings, or just
+            hanging out. I wanted a simple tool where anyone could have
+            studio-quality conversations without the technical headaches."
           </blockquote>
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-gradient-to-tr from-purple-400 to-orange-400 rounded-full"></div>
+            <img src="https://www.grind.org.in/ceo.jpg" className="w-10 h-10 bg-gradient-to-tr from-purple-400 to-orange-400 rounded-full"/>
             <div>
-              <div className="font-semibold">Sarah Jenkins</div>
+              <div className="font-semibold">Atul Shukla</div>
               <div className="text-sm text-white/60">
-                Host of "Future Tech" • 150k+ Listeners
+                Founder & CEO of Waveline
               </div>
             </div>
           </div>

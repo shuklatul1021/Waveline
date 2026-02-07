@@ -53,14 +53,14 @@ export default function PricingSection() {
 
           {/* Title */}
           <div className="self-stretch text-center flex justify-center flex-col text-[#49423D] text-3xl md:text-5xl font-semibold leading-tight md:leading-[60px] font-sans tracking-tight">
-            Simple Pricing for Podcasters
+            Simple Pricing for Everyone
           </div>
 
           {/* Description */}
           <div className="self-stretch text-center text-[#605A57] text-base font-normal leading-7 font-sans">
-            From solo creators to production teams.
+            From solo creators to enterprise teams.
             <br />
-            Unlimited recording hours on all plans.
+            Unlimited session hours on all plans.
           </div>
         </div>
       </div>
@@ -144,7 +144,7 @@ export default function PricingSection() {
                     Starter
                   </div>
                   <div className="w-full max-w-[242px] text-[rgba(41,37,35,0.70)] text-sm font-normal leading-5 font-sans">
-                    Perfect for solo podcasters and hobbyists getting started.
+                    Perfect for individuals and small teams getting started.
                   </div>
                 </div>
 
@@ -194,11 +194,11 @@ export default function PricingSection() {
 
               <div className="self-stretch flex flex-col justify-start items-start gap-2">
                 {[
-                  "Up to 2 participants per recording",
-                  "Unlimited recording hours",
+                  "Up to 2 participants per session",
+                  "Unlimited session hours",
                   "AI noise removal",
                   "Basic editing tools",
-                  "Publish to 5+ platforms",
+                  "Podcast publishing to 5+ platforms",
                 ].map((feature, index) => (
                   <div
                     key={index}
@@ -238,8 +238,8 @@ export default function PricingSection() {
                     Professional
                   </div>
                   <div className="w-full max-w-[242px] text-[#B2AEA9] text-sm font-normal leading-5 font-sans">
-                    For professional creators who need advanced features and
-                    team collaboration.
+                    For teams and creators who need advanced features and
+                    collaboration tools.
                   </div>
                 </div>
 
@@ -290,11 +290,11 @@ export default function PricingSection() {
 
               <div className="self-stretch flex flex-col justify-start items-start gap-2">
                 {[
-                  "Up to 8 participants per recording",
+                  "Up to 10 participants per session",
                   "Everything in Starter",
                   "Separate audio tracks per person",
                   "Advanced AI editing (filler word removal)",
-                  "Video recording support",
+                  "HD video recording support",
                   "Custom branding",
                   "Priority support",
                   "Team workspace",
@@ -337,8 +337,8 @@ export default function PricingSection() {
                     Enterprise
                   </div>
                   <div className="w-full max-w-[242px] text-[rgba(41,37,35,0.70)] text-sm font-normal leading-5 font-sans">
-                    For podcast networks and production companies needing
-                    unlimited scale.
+                    For large teams and organizations needing unlimited scale
+                    and advanced features.
                   </div>
                 </div>
 
@@ -392,7 +392,7 @@ export default function PricingSection() {
                   "Everything in Professional",
                   "Dedicated account manager",
                   "Custom AI training",
-                  "Multi-show management",
+                  "Multi-workspace management",
                   "API access",
                   "White-label options",
                   "24/7 priority support",

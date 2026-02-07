@@ -24,25 +24,25 @@ export default function TestimonialsSection() {
   const testimonials = [
     {
       quote:
-        "This platform transformed my podcast workflow. I went from spending 8 hours editing to just 30 minutes. The AI removes all the ums and ahs automatically. My audio quality is now studio-level!",
+        "This platform transformed how our team connects. Whether it's a quick standup, interview, or podcast recording, everything just works. The audio quality is studio-level!",
       name: "Jamie Marshall",
-      company: "Host of 'Tech Talk Daily' Podcast",
+      company: "Engineering Lead at TechFlow",
       image:
         "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Sep%2011%2C%202025%2C%2011_35_19%20AM-z4zSRLsbOQDp7MJS1t8EXmGNB6Al9Z.png",
     },
     {
       quote:
-        "Recording with remote guests is seamless. No software for them to install, crystal clear audio, and I can export separate tracks for each person. We've published 50+ episodes without a single technical issue.",
+        "From team meetings to podcast recordings, this is our go-to platform. No software to install, crystal clear audio, and the AI editing saves us hours. We've hosted 200+ sessions without issues.",
       name: "Sarah Chen",
-      company: "Producer at 'Startup Stories'",
+      company: "Head of Content at Startup Stories",
       image:
         "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Sep%2011%2C%202025%2C%2010_54_18%20AM-nbiecp92QNdTudmCrHr97uekrIPzCP.png",
     },
     {
       quote:
-        "The one-click distribution to all platforms saved me so much time. I record, edit, and within an hour my episode is live on Spotify, Apple Podcasts, and YouTube. Absolutely brilliant!",
+        "Perfect for our remote interviews and casual team hangouts. The quality rivals expensive studio setups. One-click publishing for podcasts is the cherry on top!",
       name: "Marcus Rodriguez",
-      company: "Creator of 'Business Breakthrough'",
+      company: "Founder of Remote First Co.",
       image:
         "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Sep%2011%2C%202025%2C%2011_01_05%20AM-TBOe92trRxKn4G5So1m9D2h7LRH4PG.png",
     },

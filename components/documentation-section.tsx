@@ -1,55 +1,60 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import type React from "react"
+import { useState, useEffect } from "react";
+import type React from "react";
 
 // Badge component for consistency
 function Badge({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
     <div className="px-[14px] py-[6px] bg-white shadow-[0px_0px_0px_4px_rgba(55,50,47,0.05)] overflow-hidden rounded-[90px] flex justify-start items-center gap-[8px] border border-[rgba(2,6,23,0.08)] shadow-xs">
-      <div className="w-[14px] h-[14px] relative overflow-hidden flex items-center justify-center">{icon}</div>
+      <div className="w-[14px] h-[14px] relative overflow-hidden flex items-center justify-center">
+        {icon}
+      </div>
       <div className="text-center flex justify-center flex-col text-[#37322F] text-xs font-medium leading-3 font-sans">
         {text}
       </div>
     </div>
-  )
+  );
 }
 
 export default function DocumentationSection() {
-  const [activeCard, setActiveCard] = useState(0)
-  const [animationKey, setAnimationKey] = useState(0)
+  const [activeCard, setActiveCard] = useState(0);
+  const [animationKey, setAnimationKey] = useState(0);
 
   const cards = [
     {
-      title: "Create Your Studio",
-      description: "Set up your recording space with custom branding,\nintros, outros, and background music.",
+      title: "Choose Your Session",
+      description:
+        "Select from podcast, meeting, interview, presentation,\ncasual hangout, or gaming session.",
       image: "/modern-dashboard-interface-with-data-visualization.jpg",
     },
     {
-      title: "Record with Guests",
-      description: "Invite unlimited guests via link. Record locally for\nstudio-quality audio, even with poor internet.",
+      title: "Connect in Real-Time",
+      description:
+        "Invite participants via link. Crystal-clear audio & video\ndirectly in browser, no downloads needed.",
       image: "/analytics-dashboard.png",
     },
     {
-      title: "Edit & Publish",
-      description: "AI-powered editing removes filler words, silence.\nPublish to all platforms with one click.",
+      title: "Record & Share",
+      description:
+        "AI-powered recording with automatic enhancement.\nSave, share, or publish podcasts to all platforms.",
       image: "/team-collaboration-interface-with-shared-workspace.jpg",
     },
-  ]
+  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveCard((prev) => (prev + 1) % cards.length)
-      setAnimationKey((prev) => prev + 1)
-    }, 5000)
+      setActiveCard((prev) => (prev + 1) % cards.length);
+      setAnimationKey((prev) => prev + 1);
+    }, 5000);
 
-    return () => clearInterval(interval)
-  }, [cards.length])
+    return () => clearInterval(interval);
+  }, [cards.length]);
 
   const handleCardClick = (index: number) => {
-    setActiveCard(index)
-    setAnimationKey((prev) => prev + 1)
-  }
+    setActiveCard(index);
+    setAnimationKey((prev) => prev + 1);
+  };
 
   return (
     <div className="w-full border-b border-[rgba(55,50,47,0.12)] flex flex-col justify-center items-center">
@@ -66,7 +71,7 @@ export default function DocumentationSection() {
             How It Works
           </div>
           <div className="self-stretch text-center text-[#605A57] text-base font-normal leading-7 font-sans">
-            From idea to published podcast in 3 simple steps.
+            Start any session type in 3 simple steps.
             <br />
             Professional results without complex equipment or technical skills.
           </div>
@@ -79,7 +84,7 @@ export default function DocumentationSection() {
           {/* Left Column - Feature Cards */}
           <div className="w-full md:w-auto md:max-w-[400px] flex flex-col justify-center items-center gap-4 order-2 md:order-1">
             {cards.map((card, index) => {
-              const isActive = index === activeCard
+              const isActive = index === activeCard;
 
               return (
                 <div
@@ -108,7 +113,7 @@ export default function DocumentationSection() {
                     </div>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
 
@@ -140,5 +145,5 @@ export default function DocumentationSection() {
         }
       `}</style>
     </div>
-  )
+  );
 }
