@@ -14,6 +14,8 @@ import {
   Layers,
   Zap,
   HelpCircle,
+  Menu,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
@@ -25,7 +27,7 @@ export default function DashboardLayout({
 }) {
   const { data: session } = useSession();
   const [sidebarCollapsed] = useState(false);
-  const [testMode, setTestMode] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [usageExpanded, setUsageExpanded] = useState(false);
 
   const handleSignOut = async () => {
@@ -43,12 +45,20 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-[#FAFAFA]">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
-        className={`${sidebarCollapsed ? "w-16" : "w-[260px]"} bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}
+        className={`${sidebarCollapsed ? "w-16" : "w-[260px]"} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 fixed inset-y-0 left-0 z-50 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Logo */}
-        <div className="h-14 flex items-center px-4 border-b border-gray-100">
+        <div className="h-14 flex items-center justify-between px-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-[#37322F] rounded-md flex items-center justify-center">
               <span className="text-white font-bold text-xs">W</span>
@@ -70,6 +80,12 @@ export default function DashboardLayout({
               </>
             )}
           </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 lg:hidden"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -217,8 +233,14 @@ export default function DashboardLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-end px-6">
-          <div className="flex items-center gap-4">
+        <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-500 lg:hidden"
+          >
+            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+          <div className="flex items-center gap-4 ml-auto">
             <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-400">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path

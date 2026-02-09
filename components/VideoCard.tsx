@@ -7,9 +7,8 @@ import {
   Video,
   VideoOff,
   Hand,
-  Crown,
-  Pin,
   PinOff,
+  MoreHorizontal,
 } from "lucide-react";
 
 interface VideoCardProps {
@@ -21,6 +20,8 @@ interface VideoCardProps {
   audioEnabled?: boolean;
   isHandRaised?: boolean;
   isSpotlighted?: boolean;
+  isSpeaking?: boolean;
+  variant?: "gallery" | "speaker" | "filmstrip" | "pip";
   onToggleSpotlight?: () => void;
   onToggleVideo?: () => void;
   onToggleAudio?: () => void;
@@ -36,6 +37,8 @@ export function VideoCard({
   audioEnabled = true,
   isHandRaised = false,
   isSpotlighted = false,
+  isSpeaking = false,
+  variant = "gallery",
   onToggleSpotlight,
   onToggleVideo,
   onToggleAudio,
@@ -50,12 +53,26 @@ export function VideoCard({
   }, [stream]);
 
   const initials = name.substring(0, 2).toUpperCase();
+  const firstName = name.split(" ")[0];
+
+  const sizeClasses =
+    variant === "pip"
+      ? "w-[200px] h-[150px]"
+      : variant === "filmstrip"
+        ? "w-full h-full"
+        : "w-full h-full";
 
   return (
     <div
-      className={`relative aspect-video bg-gray-900 rounded-2xl overflow-hidden group shadow-2xl transition-all duration-500 ${
-        isSpotlighted ? "ring-4 ring-blue-500 scale-105 z-10" : ""
-      } ${className}`}
+      className={`relative bg-[#2A2522] overflow-hidden group transition-all duration-300 ${sizeClasses} ${
+        variant === "pip"
+          ? "rounded-lg shadow-2xl border border-white/10"
+          : "rounded-lg"
+      } ${
+        isSpeaking && !isSpotlighted
+          ? "ring-2 ring-[#37322F] ring-offset-1 ring-offset-[#1A1714]"
+          : ""
+      } ${isSpotlighted ? "ring-2 ring-[#49423D]" : ""} ${className}`}
     >
       {/* Video Element */}
       {stream && videoEnabled ? (
@@ -64,89 +81,115 @@ export function VideoCard({
           autoPlay
           playsInline
           muted={isLocal}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover ${isLocal ? "scale-x-[-1]" : ""}`}
         />
       ) : (
-        <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center">
+        <div className="w-full h-full bg-[#2A2522] flex items-center justify-center">
           <div className="text-center">
             <div
-              className={`w-20 h-20 ${
-                isHost ? "bg-indigo-600" : "bg-gray-700"
-              } rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white/5 shadow-xl`}
+              className={`${
+                variant === "pip" || variant === "filmstrip"
+                  ? "w-12 h-12"
+                  : "w-16 h-16 md:w-20 md:h-20"
+              } ${
+                isHost ? "bg-[#49423D]" : "bg-[#37322F]"
+              } rounded-full flex items-center justify-center mx-auto border-2 border-[#E5E5E0]/10`}
             >
-              <span className="text-white text-3xl font-bold">{initials}</span>
+              <span
+                className={`text-[#E5E5E0] font-semibold ${
+                  variant === "pip" || variant === "filmstrip"
+                    ? "text-lg"
+                    : "text-2xl md:text-3xl"
+                }`}
+              >
+                {initials}
+              </span>
             </div>
-            <p className="text-gray-400 text-sm font-medium">Camera Off</p>
           </div>
         </div>
       )}
 
-      {/* Local controls overlay - only show on hover for local */}
-      {isLocal && (
-        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Hand Raised Indicator - top right */}
+      {isHandRaised && (
+        <div className="absolute top-2 right-2 z-20">
+          <div className="w-7 h-7 bg-amber-400 rounded-full flex items-center justify-center shadow-lg animate-bounce text-amber-900">
+            <Hand size={14} fill="currentColor" />
+          </div>
+        </div>
+      )}
+
+      {/* Hover action menu - Zoom style "..." */}
+      {!isLocal && onToggleSpotlight && variant !== "pip" && (
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <button
+            onClick={onToggleSpotlight}
+            className="p-1.5 rounded bg-black/60 hover:bg-black/80 text-white/80 hover:text-white transition-all backdrop-blur-sm"
+            title={isSpotlighted ? "Remove spotlight" : "Spotlight"}
+          >
+            {isSpotlighted ? (
+              <PinOff size={14} />
+            ) : (
+              <MoreHorizontal size={14} />
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Local video hover controls */}
+      {isLocal && variant !== "pip" && (
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <button
             onClick={onToggleVideo}
-            className={`p-2 rounded-lg transition-all ${
+            className={`p-1.5 rounded transition-all backdrop-blur-sm ${
               videoEnabled
-                ? "bg-white/20 hover:bg-white/30 text-white"
-                : "bg-red-500 text-white"
+                ? "bg-black/40 hover:bg-black/60 text-white/80"
+                : "bg-red-500/90 text-white"
             }`}
           >
-            {videoEnabled ? <Video size={18} /> : <VideoOff size={18} />}
+            {videoEnabled ? <Video size={14} /> : <VideoOff size={14} />}
           </button>
           <button
             onClick={onToggleAudio}
-            className={`p-2 rounded-lg transition-all ${
+            className={`p-1.5 rounded transition-all backdrop-blur-sm ${
               audioEnabled
-                ? "bg-white/20 hover:bg-white/30 text-white"
-                : "bg-red-500 text-white"
+                ? "bg-black/40 hover:bg-black/60 text-white/80"
+                : "bg-red-500/90 text-white"
             }`}
           >
-            {audioEnabled ? <Mic size={18} /> : <MicOff size={18} />}
+            {audioEnabled ? <Mic size={14} /> : <MicOff size={14} />}
           </button>
         </div>
       )}
 
-      {/* Spotlight button - show on hover */}
-      {onToggleSpotlight && (
-        <button
-          onClick={onToggleSpotlight}
-          className="absolute top-4 left-4 p-2 rounded-lg bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
-          title={isSpotlighted ? "Remove spotlight" : "Spotlight"}
-        >
-          {isSpotlighted ? <PinOff size={18} /> : <Pin size={18} />}
-        </button>
-      )}
-
-      {/* Participant Info Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {isHost && (
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-indigo-600 rounded-md text-[10px] font-bold text-white uppercase tracking-wider">
-                <Crown size={10} />
-                HOST
-              </div>
-            )}
-            <span className="text-white font-semibold text-sm drop-shadow-md">
-              {name} {isLocal && "(You)"}
+      {/* Bottom name badge - Zoom style */}
+      <div className="absolute bottom-0 left-0 right-0">
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <div className="flex items-center gap-1.5">
+            {/* Mic indicator */}
+            <div
+              className={`w-5 h-5 rounded-sm flex items-center justify-center ${
+                !audioEnabled ? "bg-red-500/90" : "bg-black/50 backdrop-blur-sm"
+              }`}
+            >
+              {audioEnabled ? (
+                <Mic size={11} className="text-white" />
+              ) : (
+                <MicOff size={11} className="text-white" />
+              )}
+            </div>
+            {/* Name */}
+            <span className="text-white text-xs font-medium drop-shadow-lg px-1 py-0.5 bg-black/40 backdrop-blur-sm rounded-sm">
+              {variant === "pip"
+                ? firstName
+                : isLocal
+                  ? `${firstName} (You)`
+                  : name}
+              {isHost && (
+                <span className="ml-1 text-[10px] text-[#E5E5E0]/70">
+                  (Host)
+                </span>
+              )}
             </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {isHandRaised && (
-              <div className="w-8 h-8 bg-amber-400 rounded-lg flex items-center justify-center shadow-lg animate-bounce text-amber-900 border border-amber-500/50">
-                <Hand size={18} fill="currentColor" />
-              </div>
-            )}
-            {audioEnabled ? (
-              <div className="w-6 h-6 bg-white/10 backdrop-blur-sm rounded-md flex items-center justify-center">
-                <Mic size={14} className="text-white" />
-              </div>
-            ) : (
-              <div className="w-6 h-6 bg-red-500/80 backdrop-blur-sm rounded-md flex items-center justify-center border border-red-400/50">
-                <MicOff size={14} className="text-white" />
-              </div>
-            )}
           </div>
         </div>
       </div>

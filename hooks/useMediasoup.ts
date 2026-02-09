@@ -57,6 +57,7 @@ export function useMediasoup({
   const consumersRef = useRef<Map<string, mediasoupTypes.Consumer>>(new Map());
   const peerIdRef = useRef<string | null>(null);
   const roomIdRef = useRef<string>(roomId);
+  const localStreamRef = useRef<MediaStream | null>(null);
 
   // Send message to signaling server
   const send = useCallback((type: string, data: unknown) => {
@@ -75,6 +76,7 @@ export function useMediasoup({
           : false,
       });
       setLocalStream(stream);
+      localStreamRef.current = stream;
       return stream;
     } catch (err) {
       setError("Failed to access camera/microphone");
@@ -272,8 +274,11 @@ export function useMediasoup({
             });
 
             // Start producing if we have local stream
-            if (localStream && deviceRef.current) {
-              produce(localStream, deviceRef.current.rtpCapabilities);
+            if (localStreamRef.current && deviceRef.current) {
+              produce(
+                localStreamRef.current,
+                deviceRef.current.rtpCapabilities,
+              );
             }
           } else {
             const transport =
@@ -359,7 +364,7 @@ export function useMediasoup({
           break;
       }
     },
-    [autoJoin, consume, isHost, localStream, produce, send, userName],
+    [autoJoin, consume, isHost, produce, send, userName],
   );
 
   // Connect to signaling server
@@ -429,21 +434,22 @@ export function useMediasoup({
     [localStream],
   );
 
-  // Start producing (call after joining)
   const startProducing = useCallback(async () => {
     if (localStream && deviceRef.current && sendTransportRef.current) {
       await produce(localStream, deviceRef.current.rtpCapabilities);
     }
   }, [localStream, produce]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount only
   useEffect(() => {
     return () => {
-      leaveRoom();
+      producersRef.current.forEach((p) => p.close());
+      consumersRef.current.forEach((c) => c.close());
+      sendTransportRef.current?.close();
+      recvTransportRef.current?.close();
       socketRef.current?.close();
-      localStream?.getTracks().forEach((track) => track.stop());
     };
-  }, [leaveRoom, localStream]);
+  }, []);
 
   return {
     isConnected,

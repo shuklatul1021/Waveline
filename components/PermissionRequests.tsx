@@ -22,7 +22,7 @@ export function PermissionRequests({
   if (waitingPeers.length === 0) return null;
 
   return (
-    <div className="fixed top-20 right-4 z-50 w-80 space-y-2">
+    <div className="fixed top-20 right-2 sm:right-4 z-50 w-[calc(100vw-1rem)] sm:w-80 max-w-80 space-y-2">
       {waitingPeers.map((peer) => (
         <div
           key={peer.id}

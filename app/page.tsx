@@ -32,6 +32,7 @@ function Badge({ icon, text }: { icon: React.ReactNode; text: string }) {
 export default function LandingPage() {
   const [activeCard, setActiveCard] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -109,13 +110,13 @@ export default function LandingPage() {
 
           <div className="self-stretch pt-[9px] overflow-hidden border-b border-[rgba(55,50,47,0.06)] flex flex-col justify-center items-center gap-4 sm:gap-6 md:gap-8 lg:gap-[66px] relative z-10">
             {/* Navigation */}
-            <div className="w-full h-12 sm:h-14 md:h-16 lg:h-[84px] absolute left-0 top-0 flex justify-center items-center z-20 px-6 sm:px-8 md:px-12 lg:px-0">
+            <div className="w-full h-12 sm:h-14 md:h-16 lg:h-[84px] absolute left-0 top-0 flex justify-center items-center z-20 px-4 sm:px-8 md:px-12 lg:px-0">
               <div className="w-full h-0 absolute left-0 top-6 sm:top-7 md:top-8 lg:top-[42px] border-t border-[rgba(55,50,47,0.12)] shadow-[0px_1px_0px_white]"></div>
 
-              <div className="w-full max-w-[calc(100%-32px)] sm:max-w-[calc(100%-48px)] md:max-w-[calc(100%-64px)] lg:max-w-[1060px] lg:w-[1060px] h-12 sm:h-14 md:h-16 py-2 px-6 bg-[#F7F5F3]/80 backdrop-blur-md shadow-[0px_0px_0px_1px_rgba(55,50,47,0.08),0px_2px_4px_rgba(0,0,0,0.02)] overflow-hidden rounded-full flex justify-between items-center relative z-30 transition-all duration-300">
-                <div className="flex justify-center items-center gap-8">
+              <div className="w-full max-w-[calc(100%-16px)] sm:max-w-[calc(100%-48px)] md:max-w-[calc(100%-64px)] lg:max-w-[1060px] lg:w-[1060px] h-11 sm:h-14 md:h-16 py-1.5 sm:py-2 px-3 sm:px-6 bg-[#F7F5F3]/80 backdrop-blur-md shadow-[0px_0px_0px_1px_rgba(55,50,47,0.08),0px_2px_4px_rgba(0,0,0,0.02)] overflow-visible rounded-full flex justify-between items-center relative z-30 transition-all duration-300">
+                <div className="flex justify-center items-center gap-4 sm:gap-8">
                   <div className="flex justify-start items-center">
-                    <div className="flex flex-col justify-center text-[#2F3037] text-lg font-semibold leading-5 font-sans tracking-tight">
+                    <div className="flex flex-col justify-center text-[#2F3037] text-base sm:text-lg font-semibold leading-5 font-sans tracking-tight">
                       Waveline
                     </div>
                   </div>
@@ -137,16 +138,62 @@ export default function LandingPage() {
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-start items-center gap-3">
-                  <div className="px-4 py-2 text-[#37322F] text-sm font-medium hover:opacity-70 transition-opacity cursor-pointer">
+                <div className="flex justify-start items-center gap-1.5 sm:gap-3">
+                  <div className="hidden sm:block px-4 py-2 text-[#37322F] text-sm font-medium hover:opacity-70 transition-opacity cursor-pointer">
                     <Link href="/auth">Log in</Link>
                   </div>
-                  <div className="px-5 py-2.5 bg-[#37322F] text-white shadow-sm overflow-hidden rounded-full flex justify-center items-center cursor-pointer hover:bg-[#37322F]/90 transition-colors">
-                    <div className="text-sm font-medium leading-tight font-sans">
+                  <div className="px-4 sm:px-5 py-2 sm:py-2.5 bg-[#37322F] text-white shadow-sm overflow-hidden rounded-full flex justify-center items-center cursor-pointer hover:bg-[#37322F]/90 transition-colors">
+                    <div className="text-xs sm:text-sm font-medium leading-tight font-sans">
                       <Link href="/auth">Get Started</Link>
                     </div>
                   </div>
+                  {/* Mobile hamburger */}
+                  <button
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    className="sm:hidden flex flex-col items-center justify-center w-8 h-8 rounded-lg hover:bg-[#37322F]/5 transition-colors"
+                    aria-label="Menu"
+                  >
+                    <span
+                      className={`block w-4 h-0.5 bg-[#37322F] rounded-full transition-all duration-300 ${mobileMenuOpen ? "rotate-45 translate-y-[3px]" : ""}`}
+                    />
+                    <span
+                      className={`block w-4 h-0.5 bg-[#37322F] rounded-full mt-1 transition-all duration-300 ${mobileMenuOpen ? "-rotate-45 -translate-y-[2px]" : ""}`}
+                    />
+                  </button>
                 </div>
+
+                {/* Mobile dropdown menu */}
+                {mobileMenuOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-2 mx-2 sm:hidden bg-white/95 backdrop-blur-lg rounded-2xl shadow-[0px_8px_32px_rgba(0,0,0,0.12)] border border-[rgba(55,50,47,0.08)] overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="p-3 space-y-0.5">
+                      <a
+                        href="#"
+                        className="block px-4 py-3 text-[#37322F] text-sm font-medium rounded-xl hover:bg-[#37322F]/5 transition-colors"
+                      >
+                        Products
+                      </a>
+                      <a
+                        href="#"
+                        className="block px-4 py-3 text-[#37322F] text-sm font-medium rounded-xl hover:bg-[#37322F]/5 transition-colors"
+                      >
+                        Pricing
+                      </a>
+                      <a
+                        href="#"
+                        className="block px-4 py-3 text-[#37322F] text-sm font-medium rounded-xl hover:bg-[#37322F]/5 transition-colors"
+                      >
+                        Docs
+                      </a>
+                      <div className="border-t border-[rgba(55,50,47,0.06)] my-1" />
+                      <Link
+                        href="/auth"
+                        className="block px-4 py-3 text-[#37322F] text-sm font-medium rounded-xl hover:bg-[#37322F]/5 transition-colors"
+                      >
+                        Log in
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
