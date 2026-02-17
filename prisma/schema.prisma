@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts    Account[]
+  sessions    Session[]
+  meetings    Meeting[]    @relation("HostedMeetings")
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+  @@map("verification_tokens")
+}
+
+
+model Meeting {
+  id               String    @id @default(cuid())
+  title            String
+  description      String?
+  type             String    @default("video")
+  maxParticipants  Int       @default(10)
+  status           String    @default("waiting")
+  hostId           String
+  inviteCode       String    @unique @default(cuid())
+  enableRecording  Boolean   @default(true)
+  scheduledAt      DateTime?
+  startedAt        DateTime?
+  endedAt          DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  host         User          @relation("HostedMeetings", fields: [hostId], references: [id])
+  participants Participant[]
+
+  @@index([inviteCode])
+  @@index([hostId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("meetings")
+}
+
+model Participant {
+  id        String    @id @default(cuid())
+  name      String
+  email     String?
+  isHost    Boolean   @default(false)
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+  meetingId String
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId])
+  @@map("participants")
+}

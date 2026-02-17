@@ -58,6 +58,8 @@ export default function MeetingPage() {
     isRejected,
     isHost,
     localStream,
+    screenStream,
+    isScreenSharing,
     remoteStreams,
     peers,
     waitingPeers,
@@ -69,6 +71,8 @@ export default function MeetingPage() {
     startProducing,
     toggleVideo,
     toggleAudio,
+    startScreenShare,
+    stopScreenShare,
     approveJoin,
     rejectJoin,
   } = useMediasoup({
@@ -85,6 +89,16 @@ export default function MeetingPage() {
     }
   }, [error]);
 
+  // Dismiss error after 8 seconds
+  const [dismissedError, setDismissedError] = useState(false);
+  useEffect(() => {
+    if (error) {
+      setDismissedError(false);
+      const t = setTimeout(() => setDismissedError(true), 8000);
+      return () => clearTimeout(t);
+    }
+  }, [error]);
+
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -95,7 +109,6 @@ export default function MeetingPage() {
   const [hostVideoEnabled, setHostVideoEnabled] = useState(type === "video");
   const [hostAudioEnabled, setHostAudioEnabled] = useState(true);
   const [showInviteLink, setShowInviteLink] = useState(false);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -147,18 +160,7 @@ export default function MeetingPage() {
     }
   }, [isJoined, localStream, startProducing]);
 
-  const initializeMedia = useCallback(async () => {
-    if (initializingRef.current) return;
-    initializingRef.current = true;
-
-    const stream = await getLocalStream(type === "video", true);
-    if (stream) {
-      setIsInitialized(true);
-      connect();
-    }
-  }, [getLocalStream, type, connect]);
-
-  // Initialize on mount
+  // Initialize on mount - single initialization only
   useEffect(() => {
     let isMounted = true;
 
@@ -170,6 +172,10 @@ export default function MeetingPage() {
       if (stream && isMounted) {
         setIsInitialized(true);
         connect();
+      } else if (isMounted) {
+        // Even if media fails, still try to connect (audio-only fallback)
+        setIsInitialized(true);
+        connect();
       }
     };
 
@@ -178,7 +184,8 @@ export default function MeetingPage() {
     return () => {
       isMounted = false;
     };
-  }, [getLocalStream, type, connect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Fetch meeting data
   useEffect(() => {
@@ -238,8 +245,12 @@ export default function MeetingPage() {
     setHostAudioEnabled(!hostAudioEnabled);
   };
 
-  const toggleScreenShare = () => {
-    setIsScreenSharing(!isScreenSharing);
+  const toggleScreenShare = async () => {
+    if (isScreenSharing) {
+      stopScreenShare();
+    } else {
+      await startScreenShare();
+    }
   };
 
   const copyInviteLink = () => {
@@ -317,11 +328,32 @@ export default function MeetingPage() {
     setSpotlightedId(spotlightedId === id ? null : id);
   };
 
-  // Calculate total participants count
-  const participantCount = 1 + remoteStreams.length; // local + remote
+  // Calculate total participants count (deduplicate by peerId)
+  const uniqueRemotePeerIds = new Set(
+    remoteStreams.filter((s) => !s.isScreenShare).map((s) => s.peerId),
+  );
+  const participantCount = 1 + uniqueRemotePeerIds.size; // local + unique remote peers
 
-  // Active speaker (first remote or null)
-  const activeSpeaker = remoteStreams.length > 0 ? remoteStreams[0] : null;
+  // Group remote streams: deduplicate so we show one VideoCard per peer (prefer video over audio-only)
+  const deduplicatedRemoteStreams = (() => {
+    const peerMap = new Map<string, (typeof remoteStreams)[number]>();
+    for (const rs of remoteStreams) {
+      if (rs.isScreenShare) continue; // Screen shares rendered separately
+      const existing = peerMap.get(rs.peerId);
+      // Prefer video stream over audio-only
+      if (!existing || (rs.kind === "video" && existing.kind === "audio")) {
+        peerMap.set(rs.peerId, rs);
+      }
+    }
+    return Array.from(peerMap.values());
+  })();
+
+  // Separate screen share streams
+  const screenShareStreams = remoteStreams.filter((s) => s.isScreenShare);
+
+  // Active speaker (first remote video or null)
+  const activeSpeaker =
+    deduplicatedRemoteStreams.length > 0 ? deduplicatedRemoteStreams[0] : null;
 
   // Gallery grid layout classes
   const getGridClasses = () => {
@@ -404,6 +436,18 @@ export default function MeetingPage() {
       </header>
 
       {/* ====== MAIN CONTENT AREA ====== */}
+      {/* Error Banner */}
+      {error && !dismissedError && (
+        <div className="bg-red-600/90 text-white px-4 py-2 flex items-center justify-between text-sm z-50">
+          <span>⚠ {error}</span>
+          <button
+            onClick={() => setDismissedError(true)}
+            className="p-1 hover:bg-red-700 rounded transition-colors ml-4"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
       <div className="flex flex-1 overflow-hidden">
         {/* VIDEO AREA */}
         <div className="flex-1 flex flex-col relative">
@@ -473,7 +517,7 @@ export default function MeetingPage() {
                 )}
 
                 {/* Remote video tiles */}
-                {remoteStreams.map((remoteStream) => {
+                {deduplicatedRemoteStreams.map((remoteStream) => {
                   const peer = peers.find((p) => p.id === remoteStream.peerId);
                   return (
                     <div
@@ -488,7 +532,7 @@ export default function MeetingPage() {
                         isLocal={false}
                         isHost={peer?.isHost}
                         videoEnabled={remoteStream.kind === "video"}
-                        audioEnabled={remoteStream.kind === "audio"}
+                        audioEnabled={true}
                         isSpotlighted={spotlightedId === remoteStream.peerId}
                         isHandRaised={handRaisedParticipants.has(
                           remoteStream.peerId,
@@ -501,6 +545,44 @@ export default function MeetingPage() {
                     </div>
                   );
                 })}
+
+                {/* Remote screen shares */}
+                {screenShareStreams.map((ss) => {
+                  const peer = peers.find((p) => p.id === ss.peerId);
+                  return (
+                    <div
+                      key={`screen-${ss.peerId}`}
+                      className="relative aspect-video min-h-0 col-span-full"
+                    >
+                      <VideoCard
+                        stream={ss.stream}
+                        name={`${ss.peerName || peer?.name || "Participant"}'s screen`}
+                        isLocal={false}
+                        isHost={false}
+                        videoEnabled={true}
+                        audioEnabled={false}
+                        isScreenShare={true}
+                        variant="gallery"
+                      />
+                    </div>
+                  );
+                })}
+
+                {/* Local screen share preview */}
+                {isScreenSharing && screenStream && (
+                  <div className="relative aspect-video min-h-0 col-span-full">
+                    <VideoCard
+                      stream={screenStream}
+                      name="Your Screen"
+                      isLocal={true}
+                      isHost={false}
+                      videoEnabled={true}
+                      audioEnabled={false}
+                      isScreenShare={true}
+                      variant="gallery"
+                    />
+                  </div>
+                )}
               </div>
             </main>
           )}
@@ -508,45 +590,74 @@ export default function MeetingPage() {
           {/* ====== SPEAKER VIEW ====== */}
           {viewMode === "speaker" && (
             <main className="flex-1 flex flex-col p-3 gap-2">
-              {/* Main large video */}
-              <div className="flex-1 min-h-0">
-                {activeSpeaker ? (
-                  <VideoCard
-                    stream={activeSpeaker.stream}
-                    name={
-                      activeSpeaker.peerName ||
-                      peers.find((p) => p.id === activeSpeaker.peerId)?.name ||
-                      "Participant"
-                    }
-                    isLocal={false}
-                    isHost={
-                      peers.find((p) => p.id === activeSpeaker.peerId)?.isHost
-                    }
-                    videoEnabled={activeSpeaker.kind === "video"}
-                    audioEnabled={activeSpeaker.kind === "audio"}
-                    isSpotlighted={spotlightedId === activeSpeaker.peerId}
-                    isHandRaised={handRaisedParticipants.has(
-                      activeSpeaker.peerId,
-                    )}
-                    variant="speaker"
-                    onToggleSpotlight={() =>
-                      toggleSpotlight(activeSpeaker.peerId)
-                    }
-                  />
-                ) : localStream ? (
-                  <VideoCard
-                    stream={localStream}
-                    name={userName}
-                    isLocal={true}
-                    isHost={isHost}
-                    audioEnabled={hostAudioEnabled}
-                    videoEnabled={hostVideoEnabled}
-                    variant="speaker"
-                    onToggleAudio={toggleHostAudio}
-                    onToggleVideo={toggleHostVideo}
-                  />
-                ) : null}
-              </div>
+              {/* Screen share takes priority in speaker view */}
+              {screenShareStreams.length > 0 || isScreenSharing ? (
+                <div className="flex-1 min-h-0">
+                  {screenShareStreams.length > 0 ? (
+                    <VideoCard
+                      stream={screenShareStreams[0].stream}
+                      name={`${screenShareStreams[0].peerName || peers.find((p) => p.id === screenShareStreams[0].peerId)?.name || "Participant"}'s screen`}
+                      isLocal={false}
+                      isHost={false}
+                      videoEnabled={true}
+                      audioEnabled={false}
+                      isScreenShare={true}
+                      variant="speaker"
+                    />
+                  ) : screenStream ? (
+                    <VideoCard
+                      stream={screenStream}
+                      name="Your Screen"
+                      isLocal={true}
+                      isHost={false}
+                      videoEnabled={true}
+                      audioEnabled={false}
+                      isScreenShare={true}
+                      variant="speaker"
+                    />
+                  ) : null}
+                </div>
+              ) : (
+                <div className="flex-1 min-h-0">
+                  {activeSpeaker ? (
+                    <VideoCard
+                      stream={activeSpeaker.stream}
+                      name={
+                        activeSpeaker.peerName ||
+                        peers.find((p) => p.id === activeSpeaker.peerId)
+                          ?.name ||
+                        "Participant"
+                      }
+                      isLocal={false}
+                      isHost={
+                        peers.find((p) => p.id === activeSpeaker.peerId)?.isHost
+                      }
+                      videoEnabled={activeSpeaker.kind === "video"}
+                      audioEnabled={true}
+                      isSpotlighted={spotlightedId === activeSpeaker.peerId}
+                      isHandRaised={handRaisedParticipants.has(
+                        activeSpeaker.peerId,
+                      )}
+                      variant="speaker"
+                      onToggleSpotlight={() =>
+                        toggleSpotlight(activeSpeaker.peerId)
+                      }
+                    />
+                  ) : localStream ? (
+                    <VideoCard
+                      stream={localStream}
+                      name={userName}
+                      isLocal={true}
+                      isHost={isHost}
+                      audioEnabled={hostAudioEnabled}
+                      videoEnabled={hostVideoEnabled}
+                      variant="speaker"
+                      onToggleAudio={toggleHostAudio}
+                      onToggleVideo={toggleHostVideo}
+                    />
+                  ) : null}
+                </div>
+              )}
 
               {/* Filmstrip at bottom */}
               {participantCount > 1 && (
@@ -568,7 +679,7 @@ export default function MeetingPage() {
                     </div>
                   )}
                   {/* Other participants in filmstrip */}
-                  {remoteStreams
+                  {deduplicatedRemoteStreams
                     .filter((rs) => rs.peerId !== activeSpeaker?.peerId)
                     .map((remoteStream) => {
                       const peer = peers.find(
@@ -589,7 +700,7 @@ export default function MeetingPage() {
                             isLocal={false}
                             isHost={peer?.isHost}
                             videoEnabled={remoteStream.kind === "video"}
-                            audioEnabled={remoteStream.kind === "audio"}
+                            audioEnabled={true}
                             variant="filmstrip"
                             onToggleSpotlight={() =>
                               toggleSpotlight(remoteStream.peerId)

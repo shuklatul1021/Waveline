@@ -1,48 +1,52 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-  Search,
-  Filter,
-  MoreVertical,
-  Play,
   Clock,
   Calendar,
-  BarChart2,
-  Edit3,
-  Trash2,
-  Plus,
+  Users,
   Video,
   Mic,
-  Settings,
-  Menu,
-  Home,
-  Users,
-  Database,
-  PlayCircle,
-  Archive,
-  BarChart3,
-  Layers,
-  TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
+  Loader2,
+  Timer,
+  Activity,
 } from "lucide-react";
 import DashboardLayout from "@/components/dashboard-layout";
 
-interface Episode {
+interface Participant {
+  id: string;
+  name: string;
+  email: string | null;
+  isHost: boolean;
+  joinedAt: string;
+}
+
+interface Meeting {
   id: string;
   title: string;
-  guests: string;
-  status: "published" | "draft" | "recording" | "scheduled";
-  duration: string;
-  listens: string;
-  trend: string;
-  isUp: boolean;
-  recordedDate: string;
-  publishedDate: string;
-  type: "video" | "audio";
+  description: string | null;
+  type: string;
+  maxParticipants: number;
+  status: string;
+  hostId: string;
+  inviteCode: string;
+  enableRecording: boolean;
+  scheduledAt: string | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  participants: Participant[];
+}
+
+interface Stats {
+  total: number;
+  active: number;
+  completed: number;
+  scheduled: number;
+  totalParticipants: number;
+  totalMinutes: number;
+  avgDuration: number;
 }
 
 export default function AnalyticsPage() {
@@ -54,335 +58,349 @@ export default function AnalyticsPage() {
 }
 
 function AnalyticsContent() {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<
-    "all" | "published" | "draft" | "recording" | "scheduled"
-  >("all");
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const mockEpisodes: Episode[] = [
-    {
-      id: "1",
-      title: "The Future of AI in Content Creation",
-      guests: "Sarah Mitchell",
-      status: "published",
-      duration: "42:15",
-      listens: "1,247",
-      trend: "+12.5%",
-      isUp: true,
-      recordedDate: "1 Aug 2024",
-      publishedDate: "3 Aug 2024",
-      type: "video",
-    },
-    {
-      id: "2",
-      title: "Building Successful Podcasts from Scratch",
-      guests: "John Davis, Mike Chen",
-      status: "published",
-      duration: "38:30",
-      listens: "892",
-      trend: "+3.2%",
-      isUp: true,
-      recordedDate: "5 Aug 2024",
-      publishedDate: "7 Aug 2024",
-      type: "video",
-    },
-    {
-      id: "3",
-      title: "Monetization Strategies for Creators",
-      guests: "Emily Rodriguez",
-      status: "draft",
-      duration: "45:00",
-      listens: "0",
-      trend: "0%",
-      isUp: true,
-      recordedDate: "8 Aug 2024",
-      publishedDate: "-",
-      type: "audio",
-    },
-    {
-      id: "4",
-      title: "Interview with Tech Entrepreneur",
-      guests: "Alex Thompson",
-      status: "recording",
-      duration: "In Progress",
-      listens: "0",
-      trend: "0%",
-      isUp: true,
-      recordedDate: "10 Aug 2024",
-      publishedDate: "Scheduled",
-      type: "video",
-    },
-    {
-      id: "5",
-      title: "Storytelling Techniques for Podcasters",
-      guests: "Lisa Anderson, Tom Wilson",
-      status: "published",
-      duration: "51:20",
-      listens: "2,143",
-      trend: "+24.8%",
-      isUp: true,
-      recordedDate: "12 Aug 2024",
-      publishedDate: "14 Aug 2024",
-      type: "audio",
-    },
-    {
-      id: "6",
-      title: "Growing Your Audience Organically",
-      guests: "Rachel Kim",
-      status: "published",
-      duration: "36:45",
-      listens: "1,678",
-      trend: "-2.4%",
-      isUp: false,
-      recordedDate: "15 Aug 2024",
-      publishedDate: "17 Aug 2024",
-      type: "video",
-    },
-  ];
-
-  const filteredEpisodes = mockEpisodes.filter((ep) => {
-    const matchesFilter = activeFilter === "all" || ep.status === activeFilter;
-    const matchesSearch =
-      ep.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ep.guests.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
-
-  const getStatusStyle = (status: Episode["status"]) => {
-    switch (status) {
-      case "published":
-        return "bg-green-100 text-green-700";
-      case "draft":
-        return "bg-amber-100 text-amber-700";
-      case "recording":
-        return "bg-red-100 text-red-700 animate-pulse";
-      case "scheduled":
-        return "bg-blue-100 text-blue-700";
-      default:
-        return "bg-gray-100 text-gray-700";
+  const fetchData = useCallback(async () => {
+    try {
+      const [meetingsRes, statsRes] = await Promise.all([
+        fetch("/api/meetings"),
+        fetch("/api/meetings/stats"),
+      ]);
+      if (meetingsRes.ok) setMeetings(await meetingsRes.json());
+      if (statsRes.ok) setStats(await statsRes.json());
+    } catch (error) {
+      console.error("Failed to fetch analytics:", error);
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Computed analytics
+  const completedMeetings = meetings.filter((m) => m.status === "ended");
+  const videoCount = meetings.filter((m) => m.type === "video").length;
+  const audioCount = meetings.filter((m) => m.type === "audio").length;
+
+  const avgParticipants =
+    completedMeetings.length > 0
+      ? (
+          completedMeetings.reduce((sum, m) => sum + m.participants.length, 0) /
+          completedMeetings.length
+        ).toFixed(1)
+      : "0";
+
+  // Sessions by day of week
+  const dayOfWeekCounts = new Array(7).fill(0);
+  meetings.forEach((m) => {
+    const day = new Date(m.createdAt).getDay();
+    dayOfWeekCounts[day]++;
+  });
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const maxDayCount = Math.max(...dayOfWeekCounts, 1);
+
+  // Recent sessions with duration
+  const recentCompleted = completedMeetings
+    .filter((m) => m.startedAt && m.endedAt)
+    .slice(0, 5)
+    .map((m) => {
+      const durationMs =
+        new Date(m.endedAt!).getTime() - new Date(m.startedAt!).getTime();
+      const minutes = Math.round(durationMs / 60000);
+      return { ...m, durationMinutes: minutes };
+    });
+
+  // Monthly trend
+  const monthMap = new Map<string, number>();
+  meetings.forEach((m) => {
+    const key = new Date(m.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+    });
+    monthMap.set(key, (monthMap.get(key) || 0) + 1);
+  });
+  const monthlyData = Array.from(monthMap.entries())
+    .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+    .slice(-6);
+  const maxMonthCount = Math.max(...monthlyData.map(([, v]) => v), 1);
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+    });
   };
 
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-3" />
+          <p className="text-sm text-gray-500">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Analytics Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        {[
-          {
-            label: "Total Listens",
-            value: "12,842",
-            trend: "+12%",
-            isUp: true,
-            icon: BarChart3,
-            color: "blue",
-          },
-          {
-            label: "Avg. Duration",
-            value: "42m",
-            trend: "+2m",
-            isUp: true,
-            icon: Clock,
-            color: "purple",
-          },
-          {
-            label: "Completion Rate",
-            value: "84%",
-            trend: "+5%",
-            isUp: true,
-            icon: TrendingUp,
-            color: "green",
-          },
-          {
-            label: "Engagement",
-            value: "4.8k",
-            trend: "-1.2%",
-            isUp: false,
-            icon: Users,
-            color: "amber",
-          },
-        ].map((stat, i) => (
-          <div
-            key={i}
-            className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div
-                className={`p-2.5 rounded-xl bg-${stat.color}-50 text-${stat.color}-600`}
-              >
-                <stat.icon size={20} />
-              </div>
-              <div
-                className={`flex items-center gap-1 text-xs font-bold ${stat.isUp ? "text-green-600" : "text-red-500"}`}
-              >
-                {stat.isUp ? (
-                  <ArrowUpRight size={14} />
-                ) : (
-                  <ArrowDownRight size={14} />
-                )}
-                {stat.trend}
-              </div>
-            </div>
-            <div className="text-2xl font-bold text-[#37322F] mb-1">
-              {stat.value}
-            </div>
-            <div className="text-sm text-gray-500 font-medium">
-              {stat.label}
-            </div>
-          </div>
-        ))}
+    <div className="flex flex-col h-full p-4 sm:p-6 lg:p-8">
+      {/* Page Header */}
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
+          Analytics
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Insights from your sessions
+        </p>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8">
-        <div className="flex items-center gap-2 bg-white p-1 rounded-2xl border border-gray-200 overflow-x-auto scrollbar-thin">
-          {(
-            ["all", "published", "draft", "recording", "scheduled"] as const
-          ).map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={`px-4 sm:px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all whitespace-nowrap ${
-                activeFilter === filter
-                  ? "bg-[#37322F] text-white shadow-md"
-                  : "text-gray-500 hover:bg-gray-50"
-              }`}
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {[
+            {
+              label: "Total Sessions",
+              value: stats.total,
+              icon: Calendar,
+              color: "blue",
+              bgColor: "bg-blue-50",
+              textColor: "text-blue-600",
+            },
+            {
+              label: "Total Minutes",
+              value: stats.totalMinutes,
+              icon: Clock,
+              color: "purple",
+              bgColor: "bg-purple-50",
+              textColor: "text-purple-600",
+            },
+            {
+              label: "Avg Duration",
+              value: `${stats.avgDuration}m`,
+              icon: Timer,
+              color: "green",
+              bgColor: "bg-green-50",
+              textColor: "text-green-600",
+            },
+            {
+              label: "Participants",
+              value: stats.totalParticipants,
+              icon: Users,
+              color: "amber",
+              bgColor: "bg-amber-50",
+              textColor: "text-amber-600",
+            },
+          ].map((stat, i) => (
+            <div
+              key={i}
+              className="bg-white p-5 sm:p-6 rounded-2xl border border-gray-100 shadow-sm"
             >
-              {filter}
-            </button>
+              <div className="flex justify-between items-start mb-3">
+                <div className={`p-2.5 rounded-xl ${stat.bgColor}`}>
+                  <stat.icon size={20} className={stat.textColor} />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">
+                {stat.value}
+              </div>
+              <div className="text-sm text-gray-500 font-medium">
+                {stat.label}
+              </div>
+            </div>
           ))}
         </div>
+      )}
 
-        <div className="relative group">
-          <Search
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#37322F] transition-colors"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder="Search episodes for analytics..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#37322F]/5 focus:border-[#37322F] transition-all w-full md:w-72 text-sm font-medium"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 overflow-y-auto pb-8 pr-2 custom-scrollbar">
-        {filteredEpisodes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-gray-200 border-dashed">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-300">
-              <Database size={40} />
-            </div>
-            <h3 className="text-xl font-bold text-[#37322F] mb-2">
-              No analytics data found
-            </h3>
-            <p className="text-gray-500 max-w-xs mx-auto">
-              Try adjusting your filters or search query to find specific
-              episode metrics.
-            </p>
-          </div>
-        ) : (
-          filteredEpisodes.map((episode) => (
-            <div
-              key={episode.id}
-              className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 hover:shadow-xl hover:border-gray-200 transition-all group border-l-4 border-l-transparent hover:border-l-[#37322F]"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                {/* Thumbnail */}
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        {/* Sessions by Day of Week */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            Sessions by Day
+          </h3>
+          <div className="flex items-end justify-between gap-2 h-40">
+            {dayOfWeekCounts.map((count, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                <span className="text-xs font-medium text-gray-500">
+                  {count}
+                </span>
                 <div
-                  className={`w-full sm:w-40 h-32 sm:h-24 rounded-2xl flex items-center justify-center relative overflow-hidden flex-shrink-0 shadow-sm ${
-                    episode.type === "video"
-                      ? "bg-gradient-to-br from-indigo-500 to-purple-600"
-                      : "bg-gradient-to-br from-amber-400 to-orange-500"
-                  }`}
+                  className="w-full bg-blue-100 rounded-t-lg transition-all"
+                  style={{
+                    height: `${Math.max((count / maxDayCount) * 100, 4)}%`,
+                    minHeight: "4px",
+                  }}
                 >
-                  <div className="absolute inset-0 bg-black/5" />
-                  {episode.type === "video" ? (
-                    <Video className="text-white/40" size={24} />
-                  ) : (
-                    <Mic className="text-white/40" size={24} />
-                  )}
-                  <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg text-[10px] font-black text-white uppercase tracking-widest border border-white/10">
-                    {episode.type}
-                  </div>
+                  <div
+                    className="w-full bg-blue-500 rounded-t-lg"
+                    style={{ height: "100%" }}
+                  />
                 </div>
+                <span className="text-[11px] font-medium text-gray-400">
+                  {dayNames[i]}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-bold text-[#37322F] truncate group-hover:text-black transition-colors">
-                      {episode.title}
-                    </h3>
-                    <span
-                      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getStatusStyle(episode.status)}`}
-                    >
-                      {episode.status}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center flex-wrap gap-4 mb-4">
-                    <p className="text-sm text-gray-500 font-bold flex items-center gap-2">
-                      <Users size={14} className="text-gray-400" />
-                      {episode.guests}
-                    </p>
-                    <div className="w-1 h-1 bg-gray-300 rounded-full" />
-                    <div className="flex items-center gap-2 text-xs text-gray-400 font-bold">
-                      <Calendar size={14} />
-                      {episode.recordedDate}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center flex-wrap gap-4 sm:gap-8">
-                    <div className="flex flex-col gap-1">
-                      <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                        Total Listens
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-base font-bold text-[#37322F]">
-                          {episode.listens}
-                        </span>
-                        <span
-                          className={`flex items-center text-[10px] font-black ${episode.isUp ? "text-green-600" : "text-red-500"}`}
-                        >
-                          {episode.isUp ? (
-                            <ArrowUpRight size={12} />
-                          ) : (
-                            <ArrowDownRight size={12} />
-                          )}
-                          {episode.trend}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="w-px h-8 bg-gray-100" />
-                    <div className="flex flex-col gap-1">
-                      <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                        Duration
-                      </div>
-                      <div className="text-base font-bold text-[#37322F]">
-                        {episode.duration}
-                      </div>
-                    </div>
-                  </div>
+        {/* Session Types */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            Session Types
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-indigo-50 rounded-xl">
+                <Video className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700">
+                    Video
+                  </span>
+                  <span className="text-sm font-bold text-gray-900">
+                    {videoCount}
+                  </span>
                 </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity sm:pr-4">
-                  <button
-                    className="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-indigo-50 hover:text-indigo-600 text-gray-400 rounded-xl transition-all shadow-sm"
-                    title="View Full Report"
-                  >
-                    <BarChart2 size={20} />
-                  </button>
-                  <button
-                    className="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 text-gray-400 rounded-xl transition-all shadow-sm"
-                    title="More Options"
-                  >
-                    <MoreVertical size={20} />
-                  </button>
+                <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div
+                    className="bg-indigo-500 h-2 rounded-full transition-all"
+                    style={{
+                      width: `${meetings.length ? (videoCount / meetings.length) * 100 : 0}%`,
+                    }}
+                  />
                 </div>
               </div>
             </div>
-          ))
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-amber-50 rounded-xl">
+                <Mic className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700">
+                    Audio
+                  </span>
+                  <span className="text-sm font-bold text-gray-900">
+                    {audioCount}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div
+                    className="bg-amber-500 h-2 rounded-full transition-all"
+                    style={{
+                      width: `${meetings.length ? (audioCount / meetings.length) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-gray-100">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-gray-50 rounded-xl">
+                  <div className="text-lg font-bold text-gray-900">
+                    {avgParticipants}
+                  </div>
+                  <div className="text-xs text-gray-500 font-medium">
+                    Avg Participants
+                  </div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-xl">
+                  <div className="text-lg font-bold text-gray-900">
+                    {stats?.active || 0}
+                  </div>
+                  <div className="text-xs text-gray-500 font-medium">
+                    Active Now
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Monthly Trend */}
+      {monthlyData.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-6 sm:mb-8">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            Monthly Sessions
+          </h3>
+          <div className="flex items-end justify-between gap-3 h-32">
+            {monthlyData.map(([month, count], i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                <span className="text-xs font-medium text-gray-500">
+                  {count}
+                </span>
+                <div
+                  className="w-full bg-green-500 rounded-t-lg transition-all"
+                  style={{
+                    height: `${Math.max((count / maxMonthCount) * 100, 4)}%`,
+                    minHeight: "4px",
+                  }}
+                />
+                <span className="text-[11px] font-medium text-gray-400">
+                  {month.split(" ")[0]}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Recent Completed Sessions */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">
+          Recent Completed Sessions
+        </h3>
+        {recentCompleted.length === 0 ? (
+          <div className="text-center py-10">
+            <Activity className="w-8 h-8 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm text-gray-500">No completed sessions yet</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {recentCompleted.map((meeting) => (
+              <div
+                key={meeting.id}
+                className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    meeting.type === "video"
+                      ? "bg-indigo-50 text-indigo-600"
+                      : "bg-amber-50 text-amber-600"
+                  }`}
+                >
+                  {meeting.type === "video" ? (
+                    <Video size={18} />
+                  ) : (
+                    <Mic size={18} />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-medium text-gray-900 truncate">
+                    {meeting.title}
+                  </h4>
+                  <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <span>{formatDate(meeting.createdAt)}</span>
+                    <span>{meeting.participants.length} participants</span>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="text-sm font-bold text-gray-900">
+                    {meeting.durationMinutes}m
+                  </div>
+                  <div className="text-xs text-gray-400">duration</div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

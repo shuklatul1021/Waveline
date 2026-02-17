@@ -276,6 +276,8 @@ async function handleMessage(
         if (!room || !peer) return;
 
         const { transport, params } = await createWebRtcTransport(room.router);
+        // Store direction in appData for later lookup
+        (transport.appData as Record<string, unknown>).direction = direction;
         peer.transports.set(transport.id, transport);
 
         send(socket, "transportCreated", { direction, ...params });
@@ -295,13 +297,23 @@ async function handleMessage(
       }
 
       case "produce": {
-        const { roomId, transportId, kind, rtpParameters } = data;
+        const {
+          roomId,
+          transportId,
+          kind,
+          rtpParameters,
+          appData: producerAppData,
+        } = data;
         const room = rooms.get(roomId);
         const peer = room?.peers.get(peerId);
         const transport = peer?.transports.get(transportId);
         if (!room || !peer || !transport) return;
 
-        const producer = await transport.produce({ kind, rtpParameters });
+        const producer = await transport.produce({
+          kind,
+          rtpParameters,
+          appData: producerAppData || {},
+        });
         peer.producers.set(producer.id, producer);
 
         producer.on("transportclose", () => {
@@ -314,6 +326,7 @@ async function handleMessage(
           peerId,
           producerId: producer.id,
           kind,
+          appData: producerAppData || {},
         });
         break;
       }
@@ -342,13 +355,18 @@ async function handleMessage(
           return;
         }
 
-        // Find receive transport
+        // Find receive transport by direction appData
         let recvTransport: mediasoupTypes.WebRtcTransport | undefined;
         peer.transports.forEach((t) => {
-          if (t.appData.direction === "recv" || !recvTransport) {
+          if ((t.appData as Record<string, unknown>).direction === "recv") {
             recvTransport = t;
           }
         });
+        if (!recvTransport) {
+          // Fallback: use any available transport
+          const transports = Array.from(peer.transports.values());
+          recvTransport = transports.length > 1 ? transports[1] : transports[0];
+        }
         if (!recvTransport) return;
 
         const consumer = await recvTransport.consume({
@@ -375,6 +393,11 @@ async function handleMessage(
           producerPeerId,
           kind: consumer.kind,
           rtpParameters: consumer.rtpParameters,
+          appData: {
+            isScreenShare: !!(producer.appData as Record<string, unknown>)
+              ?.isScreenShare,
+            peerName: peer.name,
+          },
         });
         break;
       }

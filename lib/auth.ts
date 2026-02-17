@@ -2,33 +2,21 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
-import { query, generateId } from "./db";
+import { prisma } from "./db";
 import { compare, hash } from "bcryptjs";
+import type { User } from "@/lib/generated/prisma/client";
 
-// User type for NextAuth
-export interface User {
-  id: string;
-  name: string | null;
-  email: string;
-  emailVerified: Date | null;
-  image: string | null;
-  password: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Re-export User type
+export type { User };
 
 // Get user by email
 export async function getUserByEmail(email: string): Promise<User | null> {
-  const result = await query<User>("SELECT * FROM users WHERE email = $1", [
-    email,
-  ]);
-  return result.rows[0] || null;
+  return prisma.user.findUnique({ where: { email } });
 }
 
 // Get user by ID
 export async function getUserById(id: string): Promise<User | null> {
-  const result = await query<User>("SELECT * FROM users WHERE id = $1", [id]);
-  return result.rows[0] || null;
+  return prisma.user.findUnique({ where: { id } });
 }
 
 // Create user
@@ -38,16 +26,16 @@ export async function createUser(data: {
   password?: string;
   image?: string;
 }): Promise<User> {
-  const id = generateId();
   const hashedPassword = data.password ? await hash(data.password, 12) : null;
 
-  const result = await query<User>(
-    `INSERT INTO users (id, name, email, password, image, "createdAt", "updatedAt") 
-     VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) 
-     RETURNING *`,
-    [id, data.name, data.email, hashedPassword, data.image || null],
-  );
-  return result.rows[0];
+  return prisma.user.create({
+    data: {
+      name: data.name,
+      email: data.email,
+      password: hashedPassword,
+      image: data.image ?? null,
+    },
+  });
 }
 
 // Update user
@@ -55,35 +43,14 @@ export async function updateUser(
   id: string,
   data: Partial<Pick<User, "name" | "email" | "image" | "emailVerified">>,
 ): Promise<User | null> {
-  const fields: string[] = [];
-  const values: unknown[] = [];
-  let paramIndex = 1;
-
-  if (data.name !== undefined) {
-    fields.push(`name = $${paramIndex++}`);
-    values.push(data.name);
+  try {
+    return await prisma.user.update({
+      where: { id },
+      data,
+    });
+  } catch {
+    return null;
   }
-  if (data.email !== undefined) {
-    fields.push(`email = $${paramIndex++}`);
-    values.push(data.email);
-  }
-  if (data.image !== undefined) {
-    fields.push(`image = $${paramIndex++}`);
-    values.push(data.image);
-  }
-  if (data.emailVerified !== undefined) {
-    fields.push(`"emailVerified" = $${paramIndex++}`);
-    values.push(data.emailVerified);
-  }
-
-  fields.push(`"updatedAt" = NOW()`);
-  values.push(id);
-
-  const result = await query<User>(
-    `UPDATE users SET ${fields.join(", ")} WHERE id = $${paramIndex} RETURNING *`,
-    values,
-  );
-  return result.rows[0] || null;
 }
 
 // Link OAuth account
@@ -100,26 +67,28 @@ export async function linkAccount(data: {
   id_token?: string;
   session_state?: string;
 }) {
-  const id = generateId();
-  await query(
-    `INSERT INTO accounts (id, "userId", type, provider, "providerAccountId", refresh_token, access_token, expires_at, token_type, scope, id_token, session_state)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-     ON CONFLICT (provider, "providerAccountId") DO NOTHING`,
-    [
-      id,
-      data.userId,
-      data.type,
-      data.provider,
-      data.providerAccountId,
-      data.refresh_token,
-      data.access_token,
-      data.expires_at,
-      data.token_type,
-      data.scope,
-      data.id_token,
-      data.session_state,
-    ],
-  );
+  await prisma.account.upsert({
+    where: {
+      provider_providerAccountId: {
+        provider: data.provider,
+        providerAccountId: data.providerAccountId,
+      },
+    },
+    update: {},
+    create: {
+      userId: data.userId,
+      type: data.type,
+      provider: data.provider,
+      providerAccountId: data.providerAccountId,
+      refresh_token: data.refresh_token,
+      access_token: data.access_token,
+      expires_at: data.expires_at,
+      token_type: data.token_type,
+      scope: data.scope,
+      id_token: data.id_token,
+      session_state: data.session_state,
+    },
+  });
 }
 
 // Get account by provider
@@ -127,11 +96,14 @@ export async function getAccountByProvider(
   provider: string,
   providerAccountId: string,
 ) {
-  const result = await query(
-    `SELECT * FROM accounts WHERE provider = $1 AND "providerAccountId" = $2`,
-    [provider, providerAccountId],
-  );
-  return result.rows[0] || null;
+  return prisma.account.findUnique({
+    where: {
+      provider_providerAccountId: {
+        provider,
+        providerAccountId,
+      },
+    },
+  });
 }
 
 export const authOptions: NextAuthOptions = {

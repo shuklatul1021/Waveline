@@ -9,6 +9,7 @@ import {
   Hand,
   PinOff,
   MoreHorizontal,
+  Monitor,
 } from "lucide-react";
 
 interface VideoCardProps {
@@ -21,6 +22,7 @@ interface VideoCardProps {
   isHandRaised?: boolean;
   isSpotlighted?: boolean;
   isSpeaking?: boolean;
+  isScreenShare?: boolean;
   variant?: "gallery" | "speaker" | "filmstrip" | "pip";
   onToggleSpotlight?: () => void;
   onToggleVideo?: () => void;
@@ -37,6 +39,7 @@ export function VideoCard({
   audioEnabled = true,
   isHandRaised = false,
   isSpotlighted = false,
+  isScreenShare = false,
   isSpeaking = false,
   variant = "gallery",
   onToggleSpotlight,
@@ -47,9 +50,19 @@ export function VideoCard({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
+    const videoEl = videoRef.current;
+    if (videoEl && stream) {
+      videoEl.srcObject = stream;
+      // Ensure playback starts (handles autoplay policy)
+      videoEl.play().catch(() => {
+        // Autoplay blocked — user interaction needed
+      });
     }
+    return () => {
+      if (videoEl) {
+        videoEl.srcObject = null;
+      }
+    };
   }, [stream]);
 
   const initials = name.substring(0, 2).toUpperCase();
@@ -81,7 +94,7 @@ export function VideoCard({
           autoPlay
           playsInline
           muted={isLocal}
-          className={`w-full h-full object-cover ${isLocal ? "scale-x-[-1]" : ""}`}
+          className={`w-full h-full object-cover ${isLocal && !isScreenShare ? "scale-x-[-1]" : ""}`}
         />
       ) : (
         <div className="w-full h-full bg-[#2A2522] flex items-center justify-center">
@@ -165,18 +178,27 @@ export function VideoCard({
       <div className="absolute bottom-0 left-0 right-0">
         <div className="flex items-center justify-between px-2 py-1.5">
           <div className="flex items-center gap-1.5">
-            {/* Mic indicator */}
-            <div
-              className={`w-5 h-5 rounded-sm flex items-center justify-center ${
-                !audioEnabled ? "bg-red-500/90" : "bg-black/50 backdrop-blur-sm"
-              }`}
-            >
-              {audioEnabled ? (
-                <Mic size={11} className="text-white" />
-              ) : (
-                <MicOff size={11} className="text-white" />
-              )}
-            </div>
+            {/* Screen share indicator */}
+            {isScreenShare ? (
+              <div className="w-5 h-5 rounded-sm flex items-center justify-center bg-blue-500/80 backdrop-blur-sm">
+                <Monitor size={11} className="text-white" />
+              </div>
+            ) : (
+              /* Mic indicator */
+              <div
+                className={`w-5 h-5 rounded-sm flex items-center justify-center ${
+                  !audioEnabled
+                    ? "bg-red-500/90"
+                    : "bg-black/50 backdrop-blur-sm"
+                }`}
+              >
+                {audioEnabled ? (
+                  <Mic size={11} className="text-white" />
+                ) : (
+                  <MicOff size={11} className="text-white" />
+                )}
+              </div>
+            )}
             {/* Name */}
             <span className="text-white text-xs font-medium drop-shadow-lg px-1 py-0.5 bg-black/40 backdrop-blur-sm rounded-sm">
               {variant === "pip"

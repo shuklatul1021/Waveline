@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { meetingQueries, participantQueries } from "@/lib/db";
+import { getSession } from "@/lib/session";
 
 export async function GET() {
   try {
-    const meetings = await meetingQueries.findMany();
+    const session = await getSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const meetings = await meetingQueries.findByHostId(session.user.id);
     return NextResponse.json(
       meetings.map((m) => ({
         ...m,
@@ -21,6 +27,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       title,
@@ -36,8 +47,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
-    const hostId = `host_${Date.now()}`;
-
     const meeting = await meetingQueries.create({
       title,
       description,
@@ -45,11 +54,12 @@ export async function POST(request: NextRequest) {
       maxParticipants: maxParticipants || 10,
       enableRecording: enableRecording ?? true,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
-      hostId,
+      hostId: session.user.id,
     });
 
     const hostParticipant = await participantQueries.create({
-      name: hostName || "Host",
+      name: hostName || session.user.name || "Host",
+      email: session.user.email,
       isHost: true,
       meetingId: meeting.id,
     });

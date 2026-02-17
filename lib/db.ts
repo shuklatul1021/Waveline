@@ -1,55 +1,22 @@
-import { Pool, QueryResult, QueryResultRow } from "pg";
+import { PrismaClient } from "@/lib/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import type {
+  Meeting as PrismaMeeting,
+  Participant as PrismaParticipant,
+} from "@/lib/generated/prisma/client";
 
-// Create a connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+// Singleton Prisma Client
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-// Helper function to generate cuid-like IDs
-export function generateId(): string {
-  return `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 9)}`;
-}
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 
-// Database query helper
-export async function query<T extends QueryResultRow = QueryResultRow>(
-  text: string,
-  params?: unknown[],
-): Promise<QueryResult<T>> {
-  const client = await pool.connect();
-  try {
-    return await client.query<T>(text, params);
-  } finally {
-    client.release();
-  }
-}
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
 
-// Types
-export interface Meeting {
-  id: string;
-  title: string;
-  description: string | null;
-  type: string;
-  maxParticipants: number;
-  status: string;
-  hostId: string;
-  inviteCode: string;
-  enableRecording: boolean;
-  scheduledAt: Date | null;
-  startedAt: Date | null;
-  endedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-export interface Participant {
-  id: string;
-  name: string;
-  email: string | null;
-  isHost: boolean;
-  joinedAt: Date;
-  leftAt: Date | null;
-  meetingId: string;
-}
+// Re-export types for backward compatibility
+export type Meeting = PrismaMeeting;
+export type Participant = PrismaParticipant;
 
 export interface MeetingWithParticipants extends Meeting {
   participants: Participant[];
@@ -59,75 +26,116 @@ export interface MeetingWithParticipants extends Meeting {
 // Meeting queries
 export const meetingQueries = {
   findMany: async (): Promise<MeetingWithParticipants[]> => {
-    const result = await query<Meeting>(`
-            SELECT m.*, 
-                   (SELECT COUNT(*) FROM participants p WHERE p."meetingId" = m.id) as "participantCount"
-            FROM meetings m 
-            ORDER BY m."createdAt" DESC
-        `);
+    const meetings = await prisma.meeting.findMany({
+      include: {
+        participants: true,
+        _count: { select: { participants: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-    // Get participants for each meeting
-    const meetings: MeetingWithParticipants[] = [];
-    for (const meeting of result.rows) {
-      const participants = await query<Participant>(
-        'SELECT * FROM participants WHERE "meetingId" = $1',
-        [meeting.id],
-      );
-      meetings.push({
-        ...meeting,
-        participants: participants.rows,
-      });
-    }
-    return meetings;
+    return meetings.map((m: (typeof meetings)[number]) => ({
+      ...m,
+      participantCount: m._count.participants,
+    }));
+  },
+
+  findByHostId: async (hostId: string): Promise<MeetingWithParticipants[]> => {
+    const meetings = await prisma.meeting.findMany({
+      where: { hostId },
+      include: {
+        participants: true,
+        _count: { select: { participants: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return meetings.map((m: (typeof meetings)[number]) => ({
+      ...m,
+      participantCount: m._count.participants,
+    }));
+  },
+
+  getStatsByHostId: async (hostId: string) => {
+    const [total, active, completed, scheduled, totalParticipants] =
+      await Promise.all([
+        prisma.meeting.count({ where: { hostId } }),
+        prisma.meeting.count({ where: { hostId, status: "active" } }),
+        prisma.meeting.count({ where: { hostId, status: "ended" } }),
+        prisma.meeting.count({
+          where: { hostId, scheduledAt: { not: null }, status: "waiting" },
+        }),
+        prisma.participant.count({
+          where: { meeting: { hostId } },
+        }),
+      ]);
+
+    // Calculate total duration from ended meetings
+    const endedMeetings = await prisma.meeting.findMany({
+      where: {
+        hostId,
+        status: "ended",
+        startedAt: { not: null },
+        endedAt: { not: null },
+      },
+      select: { startedAt: true, endedAt: true },
+    });
+
+    const totalDurationMs = endedMeetings.reduce((acc, m) => {
+      if (m.startedAt && m.endedAt) {
+        return acc + (m.endedAt.getTime() - m.startedAt.getTime());
+      }
+      return acc;
+    }, 0);
+
+    const totalMinutes = Math.round(totalDurationMs / 60000);
+
+    return {
+      total,
+      active,
+      completed,
+      scheduled,
+      totalParticipants,
+      totalMinutes,
+      avgDuration: completed > 0 ? Math.round(totalMinutes / completed) : 0,
+    };
   },
 
   findById: async (id: string): Promise<MeetingWithParticipants | null> => {
-    const result = await query<Meeting>(
-      "SELECT * FROM meetings WHERE id = $1",
-      [id],
-    );
-    if (result.rows.length === 0) return null;
-
-    const participants = await query<Participant>(
-      'SELECT * FROM participants WHERE "meetingId" = $1',
-      [id],
-    );
-    return {
-      ...result.rows[0],
-      participants: participants.rows,
-    };
+    const meeting = await prisma.meeting.findUnique({
+      where: { id },
+      include: { participants: true },
+    });
+    return meeting ?? null;
   },
 
   findByInviteCode: async (
     code: string,
   ): Promise<MeetingWithParticipants | null> => {
-    const result = await query<Meeting>(
-      'SELECT * FROM meetings WHERE "inviteCode" = $1',
-      [code],
-    );
-    if (result.rows.length === 0) return null;
-
-    const participants = await query<Participant>(
-      'SELECT * FROM participants WHERE "meetingId" = $1',
-      [result.rows[0].id],
-    );
-    return {
-      ...result.rows[0],
-      participants: participants.rows,
-    };
+    const meeting = await prisma.meeting.findUnique({
+      where: { inviteCode: code },
+      include: { participants: true },
+    });
+    return meeting ?? null;
   },
 
   findByInviteCodePreview: async (code: string) => {
-    const result = await query<Meeting & { participantCount: number }>(
-      `
-            SELECT m.id, m.title, m.type, m.status, m."maxParticipants",
-                   (SELECT COUNT(*) FROM participants p WHERE p."meetingId" = m.id) as "participantCount"
-            FROM meetings m
-            WHERE m."inviteCode" = $1
-        `,
-      [code],
-    );
-    return result.rows[0] || null;
+    const meeting = await prisma.meeting.findUnique({
+      where: { inviteCode: code },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        status: true,
+        maxParticipants: true,
+        _count: { select: { participants: true } },
+      },
+    });
+    if (!meeting) return null;
+    return {
+      ...meeting,
+      participantCount: meeting._count.participants,
+    };
   },
 
   create: async (data: {
@@ -139,36 +147,18 @@ export const meetingQueries = {
     scheduledAt?: Date | null;
     hostId: string;
   }): Promise<Meeting> => {
-    const id = generateId();
-    const inviteCode = generateId();
-    const now = new Date();
-
-    const result = await query<Meeting>(
-      `
-            INSERT INTO meetings (
-                id, title, description, type, "maxParticipants", status, 
-                "hostId", "inviteCode", "enableRecording", "scheduledAt", 
-                "createdAt", "updatedAt"
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-            RETURNING *
-        `,
-      [
-        id,
-        data.title,
-        data.description || null,
-        data.type || "video",
-        data.maxParticipants || 10,
-        "waiting",
-        data.hostId,
-        inviteCode,
-        data.enableRecording ?? true,
-        data.scheduledAt || null,
-        now,
-        now,
-      ],
-    );
-
-    return result.rows[0];
+    return prisma.meeting.create({
+      data: {
+        title: data.title,
+        description: data.description ?? null,
+        type: data.type ?? "video",
+        maxParticipants: data.maxParticipants ?? 10,
+        status: "waiting",
+        hostId: data.hostId,
+        enableRecording: data.enableRecording ?? true,
+        scheduledAt: data.scheduledAt ?? null,
+      },
+    });
   },
 
   update: async (
@@ -181,42 +171,23 @@ export const meetingQueries = {
       endedAt: Date;
     }>,
   ): Promise<Meeting | null> => {
-    const setClauses: string[] = ['"updatedAt" = NOW()'];
-    const values: unknown[] = [];
-    let paramIndex = 1;
-
-    if (data.title !== undefined) {
-      setClauses.push(`title = $${paramIndex++}`);
-      values.push(data.title);
+    try {
+      return await prisma.meeting.update({
+        where: { id },
+        data,
+      });
+    } catch {
+      return null;
     }
-    if (data.description !== undefined) {
-      setClauses.push(`description = $${paramIndex++}`);
-      values.push(data.description);
-    }
-    if (data.status !== undefined) {
-      setClauses.push(`status = $${paramIndex++}`);
-      values.push(data.status);
-    }
-    if (data.startedAt !== undefined) {
-      setClauses.push(`"startedAt" = $${paramIndex++}`);
-      values.push(data.startedAt);
-    }
-    if (data.endedAt !== undefined) {
-      setClauses.push(`"endedAt" = $${paramIndex++}`);
-      values.push(data.endedAt);
-    }
-
-    values.push(id);
-    const result = await query<Meeting>(
-      `UPDATE meetings SET ${setClauses.join(", ")} WHERE id = $${paramIndex} RETURNING *`,
-      values,
-    );
-    return result.rows[0] || null;
   },
 
   delete: async (id: string): Promise<boolean> => {
-    const result = await query("DELETE FROM meetings WHERE id = $1", [id]);
-    return (result.rowCount ?? 0) > 0;
+    try {
+      await prisma.meeting.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
+    }
   },
 };
 
@@ -228,27 +199,21 @@ export const participantQueries = {
     isHost: boolean;
     meetingId: string;
   }): Promise<Participant> => {
-    const id = generateId();
-
-    const result = await query<Participant>(
-      `
-            INSERT INTO participants (id, name, email, "isHost", "meetingId", "joinedAt")
-            VALUES ($1, $2, $3, $4, $5, NOW())
-            RETURNING *
-        `,
-      [id, data.name, data.email || null, data.isHost, data.meetingId],
-    );
-
-    return result.rows[0];
+    return prisma.participant.create({
+      data: {
+        name: data.name,
+        email: data.email ?? null,
+        isHost: data.isHost,
+        meetingId: data.meetingId,
+      },
+    });
   },
 
   findByMeetingId: async (meetingId: string): Promise<Participant[]> => {
-    const result = await query<Participant>(
-      'SELECT * FROM participants WHERE "meetingId" = $1',
-      [meetingId],
-    );
-    return result.rows;
+    return prisma.participant.findMany({
+      where: { meetingId },
+    });
   },
 };
 
-export default pool;
+export default prisma;

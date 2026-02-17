@@ -118,7 +118,7 @@ export default function DashboardLayout({
 
           <div className="space-y-0.5">
             <Link
-              href="/dashboard"
+              href="/schedule"
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 text-sm"
             >
               <Calendar size={18} className="text-gray-400" />
@@ -126,7 +126,7 @@ export default function DashboardLayout({
             </Link>
 
             <Link
-              href="/dashboard"
+              href="/episodes"
               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 text-sm"
             >
               <FileText size={18} className="text-gray-400" />
@@ -213,7 +213,7 @@ export default function DashboardLayout({
         {/* Bottom Section */}
         <div className="border-t border-gray-100 p-3 space-y-1">
           <Link
-            href="/dashboard"
+            href="/settings"
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 text-sm"
           >
             <Settings size={18} className="text-gray-400" />
