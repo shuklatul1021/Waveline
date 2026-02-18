@@ -8,8 +8,9 @@ import {
   VideoOff,
   Hand,
   PinOff,
-  MoreHorizontal,
+  Maximize2,
   Monitor,
+  Crown,
 } from "lucide-react";
 
 interface VideoCardProps {
@@ -53,10 +54,7 @@ export function VideoCard({
     const videoEl = videoRef.current;
     if (videoEl && stream) {
       videoEl.srcObject = stream;
-      // Ensure playback starts (handles autoplay policy)
-      videoEl.play().catch(() => {
-        // Autoplay blocked — user interaction needed
-      });
+      videoEl.play().catch(() => {});
     }
     return () => {
       if (videoEl) {
@@ -69,23 +67,21 @@ export function VideoCard({
   const firstName = name.split(" ")[0];
 
   const sizeClasses =
-    variant === "pip"
-      ? "w-[200px] h-[150px]"
-      : variant === "filmstrip"
-        ? "w-full h-full"
-        : "w-full h-full";
+    variant === "pip" ? "w-[220px] h-[160px]" : "w-full h-full";
 
   return (
     <div
-      className={`relative bg-[#2A2522] overflow-hidden group transition-all duration-300 ${sizeClasses} ${
+      className={`relative overflow-hidden group transition-all duration-300 ${sizeClasses} ${
         variant === "pip"
-          ? "rounded-lg shadow-2xl border border-white/10"
-          : "rounded-lg"
+          ? "rounded-2xl shadow-2xl border border-white/[0.08] bg-[#18181B]"
+          : "rounded-xl bg-[#18181B]"
       } ${
         isSpeaking && !isSpotlighted
-          ? "ring-2 ring-[#37322F] ring-offset-1 ring-offset-[#1A1714]"
+          ? "ring-2 ring-emerald-500/60 ring-offset-1 ring-offset-[#0D0D0D]"
           : ""
-      } ${isSpotlighted ? "ring-2 ring-[#49423D]" : ""} ${className}`}
+      } ${isSpotlighted ? "ring-2 ring-indigo-500/70 ring-offset-1 ring-offset-[#0D0D0D]" : ""} ${
+        isScreenShare ? "ring-1 ring-blue-500/30" : ""
+      } ${className}`}
     >
       {/* Video Element */}
       {stream && videoEnabled ? (
@@ -97,19 +93,21 @@ export function VideoCard({
           className={`w-full h-full object-cover ${isLocal && !isScreenShare ? "scale-x-[-1]" : ""}`}
         />
       ) : (
-        <div className="w-full h-full bg-[#2A2522] flex items-center justify-center">
+        <div className="w-full h-full bg-gradient-to-br from-[#1E1E22] to-[#141416] flex items-center justify-center">
           <div className="text-center">
             <div
               className={`${
                 variant === "pip" || variant === "filmstrip"
                   ? "w-12 h-12"
                   : "w-16 h-16 md:w-20 md:h-20"
-              } ${
-                isHost ? "bg-[#49423D]" : "bg-[#37322F]"
-              } rounded-full flex items-center justify-center mx-auto border-2 border-[#E5E5E0]/10`}
+              } rounded-full flex items-center justify-center mx-auto ${
+                isHost
+                  ? "bg-gradient-to-br from-indigo-600/40 to-purple-700/40 ring-2 ring-indigo-500/20"
+                  : "bg-gradient-to-br from-[#2A2A2E] to-[#1F1F23] ring-2 ring-white/[0.06]"
+              }`}
             >
               <span
-                className={`text-[#E5E5E0] font-semibold ${
+                className={`text-white/90 font-semibold ${
                   variant === "pip" || variant === "filmstrip"
                     ? "text-lg"
                     : "text-2xl md:text-3xl"
@@ -122,51 +120,70 @@ export function VideoCard({
         </div>
       )}
 
-      {/* Hand Raised Indicator - top right */}
+      {/* Gradient overlay at bottom for name readability */}
+      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+
+      {/* Hand Raised Indicator */}
       {isHandRaised && (
-        <div className="absolute top-2 right-2 z-20">
-          <div className="w-7 h-7 bg-amber-400 rounded-full flex items-center justify-center shadow-lg animate-bounce text-amber-900">
-            <Hand size={14} fill="currentColor" />
+        <div className="absolute top-2.5 right-2.5 z-20">
+          <div className="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center shadow-lg animate-bounce text-amber-900 ring-2 ring-amber-300/50">
+            <Hand size={15} fill="currentColor" />
           </div>
         </div>
       )}
 
-      {/* Hover action menu - Zoom style "..." */}
+      {/* Screen share badge */}
+      {isScreenShare && (
+        <div className="absolute top-2.5 left-2.5 z-20">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-600/90 backdrop-blur-sm text-white text-[11px] font-medium shadow-lg">
+            <Monitor size={12} />
+            <span>Screen Share</span>
+          </div>
+        </div>
+      )}
+
+      {/* Host badge */}
+      {isHost && !isScreenShare && (
+        <div className="absolute top-2.5 left-2.5 z-20">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-600/80 backdrop-blur-sm text-white text-[10px] font-medium">
+            <Crown size={10} />
+            <span>Host</span>
+          </div>
+        </div>
+      )}
+
+      {/* Hover action menu */}
       {!isLocal && onToggleSpotlight && variant !== "pip" && (
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
           <button
             onClick={onToggleSpotlight}
-            className="p-1.5 rounded bg-black/60 hover:bg-black/80 text-white/80 hover:text-white transition-all backdrop-blur-sm"
+            className="p-2 rounded-lg bg-black/50 hover:bg-black/70 text-white/80 hover:text-white transition-all backdrop-blur-md border border-white/[0.06]"
             title={isSpotlighted ? "Remove spotlight" : "Spotlight"}
           >
-            {isSpotlighted ? (
-              <PinOff size={14} />
-            ) : (
-              <MoreHorizontal size={14} />
-            )}
+            {isSpotlighted ? <PinOff size={14} /> : <Maximize2 size={14} />}
           </button>
         </div>
       )}
 
       {/* Local video hover controls */}
-      {isLocal && variant !== "pip" && (
-        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+      {isLocal && !isScreenShare && variant !== "pip" && (
+        <div className="absolute top-2.5 right-2.5 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
           <button
             onClick={onToggleVideo}
-            className={`p-1.5 rounded transition-all backdrop-blur-sm ${
+            className={`p-2 rounded-lg transition-all backdrop-blur-md border ${
               videoEnabled
-                ? "bg-black/40 hover:bg-black/60 text-white/80"
-                : "bg-red-500/90 text-white"
+                ? "bg-black/40 hover:bg-black/60 text-white/80 border-white/[0.06]"
+                : "bg-red-500/90 hover:bg-red-600 text-white border-red-400/20"
             }`}
           >
             {videoEnabled ? <Video size={14} /> : <VideoOff size={14} />}
           </button>
           <button
             onClick={onToggleAudio}
-            className={`p-1.5 rounded transition-all backdrop-blur-sm ${
+            className={`p-2 rounded-lg transition-all backdrop-blur-md border ${
               audioEnabled
-                ? "bg-black/40 hover:bg-black/60 text-white/80"
-                : "bg-red-500/90 text-white"
+                ? "bg-black/40 hover:bg-black/60 text-white/80 border-white/[0.06]"
+                : "bg-red-500/90 hover:bg-red-600 text-white border-red-400/20"
             }`}
           >
             {audioEnabled ? <Mic size={14} /> : <MicOff size={14} />}
@@ -174,43 +191,33 @@ export function VideoCard({
         </div>
       )}
 
-      {/* Bottom name badge - Zoom style */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <div className="flex items-center justify-between px-2 py-1.5">
-          <div className="flex items-center gap-1.5">
-            {/* Screen share indicator */}
-            {isScreenShare ? (
-              <div className="w-5 h-5 rounded-sm flex items-center justify-center bg-blue-500/80 backdrop-blur-sm">
-                <Monitor size={11} className="text-white" />
-              </div>
-            ) : (
-              /* Mic indicator */
+      {/* Bottom name bar */}
+      <div className="absolute bottom-0 left-0 right-0 z-10">
+        <div className="flex items-center justify-between px-3 py-2">
+          <div className="flex items-center gap-2">
+            {/* Mic status indicator */}
+            {!isScreenShare && (
               <div
-                className={`w-5 h-5 rounded-sm flex items-center justify-center ${
+                className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors ${
                   !audioEnabled
                     ? "bg-red-500/90"
-                    : "bg-black/50 backdrop-blur-sm"
+                    : "bg-white/[0.12] backdrop-blur-sm"
                 }`}
               >
                 {audioEnabled ? (
-                  <Mic size={11} className="text-white" />
+                  <Mic size={12} className="text-white/90" />
                 ) : (
-                  <MicOff size={11} className="text-white" />
+                  <MicOff size={12} className="text-white" />
                 )}
               </div>
             )}
-            {/* Name */}
-            <span className="text-white text-xs font-medium drop-shadow-lg px-1 py-0.5 bg-black/40 backdrop-blur-sm rounded-sm">
+            {/* Name label */}
+            <span className="text-white text-[13px] font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">
               {variant === "pip"
                 ? firstName
                 : isLocal
                   ? `${firstName} (You)`
                   : name}
-              {isHost && (
-                <span className="ml-1 text-[10px] text-[#E5E5E0]/70">
-                  (Host)
-                </span>
-              )}
             </span>
           </div>
         </div>

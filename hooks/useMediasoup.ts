@@ -75,6 +75,11 @@ export function useMediasoup({
     }>
   >([]);
 
+  // Map consumerId → remote stream info for cleanup on consumerClosed
+  const consumerInfoRef = useRef<
+    Map<string, { peerId: string; kind: string; isScreenShare: boolean }>
+  >(new Map());
+
   // Send message to signaling server
   const send = useCallback((type: string, data: unknown) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -214,19 +219,22 @@ export function useMediasoup({
     [send],
   );
 
-  // Internal: stop screen share
+  // Internal: stop screen share and notify server
   const stopScreenShareInternal = useCallback(() => {
     if (screenProducerRef.current) {
+      const producerId = screenProducerRef.current.id;
       screenProducerRef.current.close();
-      producersRef.current.delete(screenProducerRef.current.id);
+      producersRef.current.delete(producerId);
       screenProducerRef.current = null;
+      // Notify server to close the producer so remote consumers are cleaned up
+      send("closeProducer", { roomId: roomIdRef.current, producerId });
     }
     setScreenStream((prev) => {
       prev?.getTracks().forEach((t) => t.stop());
       return null;
     });
     setIsScreenSharing(false);
-  }, []);
+  }, [send]);
 
   // Handle signaling messages
   const handleMessage = useCallback(
@@ -478,6 +486,13 @@ export function useMediasoup({
             const isScreen = !!consumerAppData?.isScreenShare;
             const peerName = consumerAppData?.peerName as string | undefined;
 
+            // Track consumer info for cleanup
+            consumerInfoRef.current.set(consumerId, {
+              peerId: producerPeerId,
+              kind,
+              isScreenShare: isScreen,
+            });
+
             const stream = new MediaStream([consumer.track]);
             setRemoteStreams((prev) => [
               ...prev.filter(
@@ -521,6 +536,10 @@ export function useMediasoup({
           const leftId = (parsedData as { peerId: string }).peerId;
           setPeers((prev) => prev.filter((p) => p.id !== leftId));
           setRemoteStreams((prev) => prev.filter((s) => s.peerId !== leftId));
+          // Clean up consumer info for this peer
+          consumerInfoRef.current.forEach((info, cId) => {
+            if (info.peerId === leftId) consumerInfoRef.current.delete(cId);
+          });
           break;
         }
 
@@ -554,6 +573,21 @@ export function useMediasoup({
           if (closedConsumer) {
             closedConsumer.close();
             consumersRef.current.delete(closedId);
+          }
+          // Remove associated remote stream
+          const closedInfo = consumerInfoRef.current.get(closedId);
+          if (closedInfo) {
+            setRemoteStreams((prev) =>
+              prev.filter(
+                (s) =>
+                  !(
+                    s.peerId === closedInfo.peerId &&
+                    s.kind === closedInfo.kind &&
+                    s.isScreenShare === closedInfo.isScreenShare
+                  ),
+              ),
+            );
+            consumerInfoRef.current.delete(closedId);
           }
           break;
         }

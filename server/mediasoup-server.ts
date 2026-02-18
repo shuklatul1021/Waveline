@@ -124,11 +124,11 @@ async function handleMessage(
 
     switch (type) {
       case "joinRoom": {
-        const { roomId, name, isHost } = data;
+        const { roomId, name } = data;
         const room = await getOrCreateRoom(roomId);
 
-        // If this is the host joining (first person or explicitly set as host)
-        if (isHost || room.peers.size === 0) {
+        // First person in room becomes host; everyone else must be approved
+        if (room.peers.size === 0) {
           const peer: Peer = {
             id: peerId,
             name,
@@ -340,11 +340,13 @@ async function handleMessage(
         // Find the producer
         let producer: mediasoupTypes.Producer | undefined;
         let producerPeerId: string | undefined;
+        let producerPeerName: string | undefined;
         room.peers.forEach((p, pId) => {
           const found = p.producers.get(producerId);
           if (found) {
             producer = found;
             producerPeerId = pId;
+            producerPeerName = p.name;
           }
         });
         if (!producer || !producerPeerId) return;
@@ -396,9 +398,24 @@ async function handleMessage(
           appData: {
             isScreenShare: !!(producer.appData as Record<string, unknown>)
               ?.isScreenShare,
-            peerName: peer.name,
+            peerName: producerPeerName,
           },
         });
+        break;
+      }
+
+      case "closeProducer": {
+        const { roomId, producerId } = data;
+        const room = rooms.get(roomId);
+        const peer = room?.peers.get(peerId);
+        if (!room || !peer) return;
+
+        const producerToClose = peer.producers.get(producerId as string);
+        if (!producerToClose) return;
+
+        producerToClose.close();
+        peer.producers.delete(producerId as string);
+        console.log(`Producer ${producerId} closed by peer ${peerId}`);
         break;
       }
 
